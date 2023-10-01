@@ -1,0 +1,9 @@
+// First carp program
+print "Hello carppy world!";
+123.4 // Number
+
+
+12 + 34 == 23; // Does this work?
+true; // True
+false; // False
+
