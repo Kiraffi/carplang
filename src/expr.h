@@ -43,7 +43,7 @@ struct Expr
     {
         i64 value;
         double doubleValue;
-        char* valueStr;
+        u32 stringIndex;
     };
 
     u32 tokenOperIndex;

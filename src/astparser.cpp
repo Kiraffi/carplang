@@ -3,6 +3,60 @@
 #include "expr.h"
 #include "mymemory.h"
 
+
+struct Parser
+{
+    MyMemory& mem;
+    i32 currentPos;
+};
+
+
+static const Token& peek(const Parser& parser)
+{
+    if (parser.currentPos >= parser.mem.scanner.tokens.size())
+    {
+        return Token{.type = TokenType::END_OF_FILE };
+    }
+    return parser.mem.scanner.tokens[parser.currentPos];
+}
+
+static const Token& previous(const Parser& parser)
+{
+    i32 prevIndex = parser.currentPos - 1;
+    prevIndex = prevIndex >= 0 ? prevIndex : 0;
+    return parser.mem.scanner.tokens[prevIndex];
+}
+
+static const Token& advance(Parser& parser)
+{
+    if (!(peek(parser).type == TokenType::END_OF_FILE))
+    {
+        parser.currentPos++;
+    }
+    return previous(parser);
+}
+
+static bool isAtEnd(const Parser& parser)
+{
+    return peek(parser).type == TokenType::END_OF_FILE;
+}
+
+
+static bool check(const Parser& parser, TokenType type)
+{
+    if (isAtEnd(parser))
+    {
+        return false;
+    }
+    return peek(parser).type == type;
+}
+
+
+
+
+
+
+
 static bool parenthesize(const MyMemory& mem, const std::string& name, u32 leftIndex, u32 rightIndex,
     std::string& outStr)
 {
@@ -62,7 +116,7 @@ bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
             case LiteralType_Null: printStr.append("nil"); break;
             case LiteralType_U64: printStr.append(std::to_string(expr.value)); break;
             case LiteralType_Double: printStr.append(std::to_string(expr.doubleValue)); break;
-            case LiteralType_String: printStr.append(expr.valueStr); break;
+            case LiteralType_String: printStr.append(mem.strings[expr.stringIndex]); break;
             }
         }
         break;
@@ -81,7 +135,9 @@ bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
 }
 
 
-bool ast_generate(MyMemory& mem)
+
+
+bool ast_test(MyMemory& mem)
 {
     mem.scanner.tokens.emplace_back(Token{ .lexMe = "-", .line = 1, .type = TokenType::MINUS });
     mem.scanner.tokens.emplace_back(Token{ .lexMe = "*", .line = 1, .type = TokenType::STAR });
@@ -131,3 +187,7 @@ bool ast_generate(MyMemory& mem)
     return true;
 }
 
+bool ast_generate(MyMemory& mem)
+{
+    return ast_test(mem);
+}
