@@ -5,11 +5,12 @@
 
 #include <vector>
 
+#include "astparser.h"
 #include "errors.h"
 #include "mymemory.h"
 #include "mytypes.h"
 #include "scanner.h"
-#include "tokens.h"
+#include "token.h"
 
 
 static bool runFile(const char* filename)
@@ -43,7 +44,12 @@ static bool runFile(const char* filename)
     {
         printf("Some failure in: %s\n", filename);
     }
-    printf("%s\n", mem.scriptFileData.data());
+    else
+    {
+        printf("%s\n", mem.scriptFileData.data());
+        ast_generate(mem);
+    }
+
 
     return true;
 }
@@ -75,7 +81,7 @@ int main(int argc, const char** argv)
         {
             printf("Failed to run file: %s\n", filename);
         }
-        printf("Script ran!\n");
+        printf("Script scanned!\n");
         //runPrompt();
     }
     printf("Wait until key pressed!\n");

@@ -1,4 +1,4 @@
-#include "tokens.h"
+#include "token.h"
 
 void printToken(const Token& token)
 {

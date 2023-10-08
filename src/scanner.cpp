@@ -9,7 +9,7 @@
 #include "errors.h"
 #include "mymemory.h"
 #include "mytypes.h"
-#include "tokens.h"
+#include "token.h"
 
 struct Keyword
 {

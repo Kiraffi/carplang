@@ -8,11 +8,11 @@ add_executable(carplang src/main.cpp
         "src/errors.cpp"
         "src/errors.h"
 
-        "src/tokens.cpp"
-        "src/tokens.h"
+        "src/token.cpp"
+        "src/token.h"
         "src/mymemory.h"
         "src/mytypes.h"
 
         "src/scanner.h"
-        "src/scanner.cpp" )
+        "src/scanner.cpp"  "src/astparser.h" "src/astparser.cpp" "src/expr.h")
 
