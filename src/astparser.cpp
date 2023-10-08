@@ -10,12 +10,12 @@ struct Parser
     i32 currentPos;
 };
 
-
+static const Token LastToken{.type = TokenType::END_OF_FILE };
 static const Token& peek(const Parser& parser)
 {
     if (parser.currentPos >= parser.mem.scanner.tokens.size())
     {
-        return Token{.type = TokenType::END_OF_FILE };
+        return LastToken;
     }
     return parser.mem.scanner.tokens[parser.currentPos];
 }

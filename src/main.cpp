@@ -1,5 +1,3 @@
-#include <conio.h> // getch
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -84,7 +82,8 @@ int main(int argc, const char** argv)
         printf("Script scanned!\n");
         //runPrompt();
     }
-    printf("Wait until key pressed!\n");
-    getch();
+    //printf("Wait until enter pressed!\n");
+    //char tmp;
+    //scanf("%c", &tmp);
     return 0;
 }
