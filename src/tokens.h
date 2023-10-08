@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "mytypes.h"
 #include <string>
 #include <vector>
 
@@ -65,17 +65,6 @@ struct Token
 
 };
 
-
-struct Scanner
-{
-    std::vector<Token> tokens;
-    const u8* src;
-    i32 srcLen;
-    i32 pos;
-    i32 start;
-    i32 line;
-    bool hasErrors;
-};
 
 void printToken(const Token& token);
 

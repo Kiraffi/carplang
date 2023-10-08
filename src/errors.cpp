@@ -1,5 +1,6 @@
 #include "errors.h"
-#include "tokens.h"
+
+#include "scanner.h"
 
 
 void reportError(Scanner& scanner, const std::string& message, const std::string& where)
