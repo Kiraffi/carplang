@@ -314,6 +314,23 @@ static u32 expression(Parser& parser)
 
 
 
+static Statement statement(Parser& parser)
+{
+    if(match(parser, TokenType::PRINT))
+    {
+        u32 exprIndex = expression(parser);
+        consume(parser, TokenType::SEMICOLON, "Expect ';' after expression!");
+        return Statement{ .expressionIndex = exprIndex, .type = StatementType_Print };
+    }
+    else
+    {
+        u32 exprIndex = expression(parser);
+        consume(parser, TokenType::SEMICOLON, "Expect ';' after expression!");
+        return Statement{ .expressionIndex = exprIndex, .type = StatementType_Expression };
+    }
+}
+
+
 
 bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
 {
@@ -421,13 +438,7 @@ bool ast_generate(MyMemory& mem)
     Parser parser {.mem = mem, .currentPos = 0 };
     while(!isAtEnd(parser))
     {
-        u32 exprIndex = expression(parser);
-        std::string s;
-        const Expr &expr = mem.expressions[exprIndex];
-        printAst(mem, expr, s);
-        printf("%s\n", s.data());
-
-        intepret(mem, expr);
+        addStatement(mem, statement(parser));
     }
     return true;
     //return ast_test(mem);

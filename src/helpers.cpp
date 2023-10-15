@@ -21,6 +21,12 @@ u32 addString(MyMemory& mem, const std::string& str)
     return mem.strings.size() - 1;
 }
 
+u32 addStatement(MyMemory& mem, const Statement& statement)
+{
+    mem.statements.emplace_back(statement);
+    return mem.statements.size() - 1;
+}
+
 const Token& getTokenOper(const MyMemory& mem, const Expr& expr)
 {
     return mem.tokens[expr.tokenOperIndex];
@@ -66,7 +72,7 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
         case LiteralType_Null:
             return "nil";
         case LiteralType_Boolean:
-            return exprValue.value == 0 ? "False" : "True";
+            return exprValue.value == 0 ? "false" : "true";
         case LiteralType_I64:
             return std::to_string(exprValue.value);
         case LiteralType_Double:
@@ -75,7 +81,7 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
             return mem.strings[exprValue.stringIndex];
     }
 
-    reportError(-1, "Unexpected return", "");
+    reportError(-1, "Literal type unknown", "");
     exit(-5);
 }
 

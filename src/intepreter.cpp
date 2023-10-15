@@ -191,7 +191,29 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
 }
 
 
-
+void intepret(MyMemory& mem, const Statement& statement)
+{
+    std::string s;
+    switch(statement.type)
+    {
+        case StatementType_Expression:
+        {
+        }
+        break;
+        case StatementType_Print:
+        {
+            const Expr& expr = mem.expressions[statement.expressionIndex];
+            printf("%s\n", stringify(mem, evaluate(mem, expr)).data());
+        }
+        break;
+        case StatementType_Count:
+        {
+            reportError(-3, "Statement count", "");
+            exit(-50);
+        }
+        break;
+    }
+}
 
 void intepret(MyMemory& mem, const Expr& expr)
 {

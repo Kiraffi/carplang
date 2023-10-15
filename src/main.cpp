@@ -5,9 +5,11 @@
 
 #include "astparser.h"
 #include "errors.h"
+#include "intepreter.h"
 #include "mymemory.h"
 #include "mytypes.h"
 #include "scanner.h"
+#include "statement.h"
 #include "token.h"
 
 
@@ -44,8 +46,14 @@ static bool runFile(const char* filename)
     }
     else
     {
-        printf("%s\n", mem.scriptFileData.data());
-        ast_generate(mem);
+        // printf("%s\n", mem.scriptFileData.data());
+        if(ast_generate(mem))
+        {
+            for(const Statement& statement : mem.statements)
+            {
+                intepret(mem, statement);
+            }
+        }
     }
 
 

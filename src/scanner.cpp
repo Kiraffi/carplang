@@ -223,7 +223,7 @@ static void scanToken(Scanner& scanner)
     case '+': addToken(scanner, TokenType::PLUS); break;
     case ';': addToken(scanner, TokenType::SEMICOLON); break;
     case '*': addToken(scanner, TokenType::STAR); break;
-
+    case '\0': addToken(scanner, TokenType::END_OF_FILE); break;
         // Double char checks
     case '!': addToken(scanner, matchChar(scanner, '=') ? TokenType::BANG_EQUAL : TokenType::BANG); break;
     case '=': addToken(scanner, matchChar(scanner, '=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL); break;
@@ -300,10 +300,10 @@ bool scanner_run(MyMemory& mem)
         });
 
 
-    for (const Token& token : scanner.mem.tokens)
-    {
-        printToken(scanner.mem, token);
-    }
+    //for (const Token& token : scanner.mem.tokens)
+    //{
+    //    printToken(scanner.mem, token);
+    //}
 
     return true;
 }

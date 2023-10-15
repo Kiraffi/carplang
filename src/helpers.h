@@ -8,6 +8,7 @@
 u32 addToken(MyMemory& mem, const Token& token);
 u32 addExpr(MyMemory& mem, const Expr& expr);
 u32 addString(MyMemory& mem, const std::string& str);
+u32 addStatement(MyMemory& mem, const Statement& statement);
 
 const Token& getTokenOper(const MyMemory& mem, const Expr& expr);
 const Expr& getLeftExprValue(const MyMemory& mem, const Expr& expr);

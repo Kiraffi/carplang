@@ -2,4 +2,4 @@
 
 #include "mymemory.h"
 
-void intepret(MyMemory& mem, const Expr& expr);
+void intepret(MyMemory& mem, const Statement& statement);
