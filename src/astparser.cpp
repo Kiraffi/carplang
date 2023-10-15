@@ -184,7 +184,7 @@ u32 primary(Parser& parser)
     {
         u32 newExpr = expression(parser);
         consume(parser, TokenType::RIGHT_PAREN, "Expect ')' after expression.");
-
+        return addExpr(parser.mem, parser.mem.expressions[newExpr]);
     }
 
     reportError(parser.mem, peek(parser), "No matching type for primary!\n");
