@@ -37,8 +37,7 @@ enum ExprType : u32
     ExprType_Literal,
     ExprType_Unary,
 };
-
-struct Expr
+struct ExprValue
 {
     union
     {
@@ -46,17 +45,26 @@ struct Expr
         double doubleValue;
         u32 stringIndex;
     };
+    LiteralType literalType;
+};
 
-    u32 tokenOperIndex;
-    u32 secondTokenIndex;
+struct Expr
+{
+    union
+    {
+        ExprValue exprValue;
+        struct
+        {
+            u32 tokenOperIndex;
+            u32 secondTokenIndex;
 
-    u32 leftExprIndex;
-    u32 rightExprIndex;
-
+            u32 leftExprIndex;
+            u32 rightExprIndex;
+        };
+    };
     u32 myExprIndex;
 
     ExprType exprType;
-    LiteralType literalType;
 };
 
 

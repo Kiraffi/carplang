@@ -2,6 +2,8 @@
 
 #include "errors.h"
 #include "expr.h"
+#include "helpers.h"
+#include "intepreter.h"
 #include "mymemory.h"
 
 
@@ -13,35 +15,22 @@ struct Parser
 
 static u32 expression(Parser& parser);
 
-static u32 addToken(MyMemory& mem, const Token& token)
-{
-
-    mem.scanner.tokens.emplace_back(token);
-    return mem.scanner.tokens.size() - 1;
-}
-
-static u32 addExpr(MyMemory& mem, const Expr& expr)
-{
-    mem.expressions.emplace_back(expr);
-    mem.expressions[mem.expressions.size() - 1].myExprIndex = mem.expressions.size() - 1;
-    return mem.expressions.size() - 1;
-}
 
 static const Token LastToken{.type = TokenType::END_OF_FILE };
 static const Token& peek(const Parser& parser)
 {
-    if (parser.currentPos >= parser.mem.scanner.tokens.size())
+    if (parser.currentPos >= parser.mem.tokens.size())
     {
         return LastToken;
     }
-    return parser.mem.scanner.tokens[parser.currentPos];
+    return parser.mem.tokens[parser.currentPos];
 }
 
 static const Token& previous(const Parser& parser)
 {
     i32 prevIndex = parser.currentPos - 1;
     prevIndex = prevIndex >= 0 ? prevIndex : 0;
-    return parser.mem.scanner.tokens[prevIndex];
+    return parser.mem.tokens[prevIndex];
 }
 
 static const u32 previousIndex(const Parser& parser)
@@ -158,7 +147,7 @@ static bool consume(Parser& parser, TokenType type, const std::string& message)
         return true;
     }
 
-    parserError(peek(parser), message);
+    reportError(parser.mem, peek(parser), message);
     // TODO FIX THIS!
     exit(-1);
     return false;
@@ -167,23 +156,29 @@ static bool consume(Parser& parser, TokenType type, const std::string& message)
 u32 primary(Parser& parser)
 {
     if(match(parser, TokenType::FALSE))
-        return addExpr(parser.mem, { .value = 0, .exprType = ExprType_Literal, .literalType = LiteralType_Boolean });
+        return addExpr(parser.mem, { .exprValue = {.value = 0, .literalType = LiteralType_Boolean }, .exprType = ExprType_Literal,  });
     if(match(parser, TokenType::TRUE))
-        return addExpr(parser.mem, { .value = ~(i64(0)), .exprType = ExprType_Literal, .literalType = LiteralType_Boolean });
+        return addExpr(parser.mem, { .exprValue = { .value = ~(i64(0)), .literalType = LiteralType_Boolean }, .exprType = ExprType_Literal,  });
     if(match(parser, TokenType::NIL))
-        return addExpr(parser.mem, { .value = 0, .exprType = ExprType_Literal, .literalType = LiteralType_Null });
+        return addExpr(parser.mem, { .exprValue = { .value = 0, .literalType = LiteralType_Null}, .exprType = ExprType_Literal,  });
 
     if(match(parser, TokenType::STRING))
     {
-        const Expr& prevExpr = parser.mem.expressions[previousIndex(parser)];
+        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
         return addExpr(parser.mem,
-            { .value = prevExpr.value, .exprType = ExprType_Literal, .literalType = LiteralType_String });
+            { .exprValue = { .value = prevToken.value.value, .literalType = LiteralType_String }, .exprType = ExprType_Literal,  });
     }
     if(match(parser, TokenType::NUMBER))
     {
-        const Expr& prevExpr = parser.mem.expressions[previousIndex(parser)];
-        return addExpr(parser.mem,
-                       { .value = prevExpr.value, .exprType = ExprType_Literal, .literalType = LiteralType_I64 });
+        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        Expr newExpr = { .exprValue = { .value = prevToken.value.value, .literalType = LiteralType_Double }, .exprType = ExprType_Literal,};
+        return addExpr(parser.mem, newExpr);
+    }
+    if(match(parser, TokenType::INTEGER))
+    {
+        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        Expr newExpr = { .exprValue = { .value = prevToken.value.value, .literalType = LiteralType_I64 }, .exprType = ExprType_Literal,};
+        return addExpr(parser.mem, newExpr);
     }
     if(match(parser, TokenType::LEFT_PAREN))
     {
@@ -191,13 +186,14 @@ u32 primary(Parser& parser)
         consume(parser, TokenType::RIGHT_PAREN, "Expect ')' after expression.");
 
     }
+
+    reportError(parser.mem, peek(parser), "No matching type for primary!\n");
+    exit(-1);
 }
 
 
 u32 unary(Parser& parser)
 {
-    u32 exprIndex = unary(parser);
-
     if(match(parser, TokenType::BANG, TokenType::MINUS))
     {
         u32 prevIndex = previousIndex(parser);
@@ -209,7 +205,7 @@ u32 unary(Parser& parser)
             .exprType = ExprType_Unary
         };
 
-        exprIndex = addExpr(parser.mem, expr);
+        u32 exprIndex = addExpr(parser.mem, expr);
         return exprIndex;
     }
     return primary(parser);
@@ -330,7 +326,7 @@ bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
         }
         case ExprType_Binary:
         {
-            const std::string& lexMe = mem.scanner.tokens[expr.tokenOperIndex].lexMe;
+            const std::string& lexMe = getTokenValueAsString(mem, mem.tokens[expr.tokenOperIndex]);
             if(!parenthesize(mem, lexMe, expr.leftExprIndex, expr.rightExprIndex, printStr))
             {
                 return false;
@@ -347,19 +343,20 @@ bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
         break;
         case ExprType_Literal:
         {
-            switch (expr.literalType)
+            switch (expr.exprValue.literalType)
             {
             case LiteralType_None: printf("Literaltype none!\n"); break;
             case LiteralType_Null: printStr.append("nil"); break;
-            case LiteralType_I64: printStr.append(std::to_string(expr.value)); break;
-            case LiteralType_Double: printStr.append(std::to_string(expr.doubleValue)); break;
-            case LiteralType_String: printStr.append(mem.strings[expr.stringIndex]); break;
+            case LiteralType_I64: printStr.append(std::to_string(expr.exprValue.value)); break;
+            case LiteralType_Double: printStr.append(std::to_string(expr.exprValue.doubleValue)); break;
+            case LiteralType_String: printStr.append(mem.strings[expr.exprValue.stringIndex]); break;
+            case LiteralType_Boolean: printStr.append("boolean"); break;
             }
         }
         break;
         case ExprType_Unary:
         {
-            const std::string& lexMe = mem.scanner.tokens[expr.tokenOperIndex].lexMe;
+            const std::string& lexMe = getTokenValueAsString(mem, mem.tokens[expr.tokenOperIndex]);
             if (!parenthesize(mem, lexMe, expr.rightExprIndex, printStr))
             {
                 return false;
@@ -376,13 +373,15 @@ bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
 
 bool ast_test(MyMemory& mem)
 {
-    u32 minusTokenIndex = addToken(mem, Token{ .lexMe = "-", .line = 1, .type = TokenType::MINUS });
-    u32 starTokenIndex = addToken(mem, Token{ .lexMe = "*", .line = 1, .type = TokenType::STAR });
+    u32 minusStr = addString(mem, "-");
+    u32 starStr = addString(mem, "*");
+    u32 minusTokenIndex = addToken(mem, Token{ .value{.stringIndex = minusStr, .literalType = LiteralType_String }, .line = 1, .type = TokenType::MINUS });
+    u32 starTokenIndex = addToken(mem, Token{ .value{.stringIndex = starStr, .literalType = LiteralType_String }, .line = 1, .type = TokenType::STAR });
 
-    Expr u64Lit{ .value = 123, .exprType = ExprType_Literal, .literalType = LiteralType_I64 };
+    Expr u64Lit{ .exprValue = { .value = 123, .literalType = LiteralType_I64 }, .exprType = ExprType_Literal,  };
     u32 u64ExpressionIndex = addExpr(mem, u64Lit);
 
-    Expr doubleLit{ .doubleValue = 45.67, .exprType = ExprType_Literal, .literalType = LiteralType_Double };
+    Expr doubleLit{ .exprValue = { .doubleValue = 45.67, .literalType = LiteralType_Double }, .exprType = ExprType_Literal,  };
     u32 doubleExpressionIndex= addExpr(mem, doubleLit);
 
     Expr unaryExpr{ .tokenOperIndex = minusTokenIndex, .rightExprIndex = u64ExpressionIndex, .exprType = ExprType_Unary };
@@ -419,5 +418,17 @@ bool ast_test(MyMemory& mem)
 
 bool ast_generate(MyMemory& mem)
 {
-    return ast_test(mem);
+    Parser parser {.mem = mem, .currentPos = 0 };
+    while(!isAtEnd(parser))
+    {
+        u32 exprIndex = expression(parser);
+        std::string s;
+        const Expr &expr = mem.expressions[exprIndex];
+        printAst(mem, expr, s);
+        printf("%s\n", s.data());
+
+        intepret(mem, expr);
+    }
+    return true;
+    //return ast_test(mem);
 }

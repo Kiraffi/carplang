@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "errors.h"
+#include "helpers.h"
 #include "mymemory.h"
 #include "mytypes.h"
 #include "token.h"
@@ -77,11 +78,41 @@ static u8 advance(Scanner& scanner)
     return c;
 }
 
+static void addNumberToken(Scanner& scanner)
+{
+    std::string s = std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start));
+
+    // TODO fix this atof
+    double d = atof(s.data());
+
+    scanner.mem.tokens.emplace_back(Token{
+        .value = {.doubleValue = d, .literalType = LiteralType_Double },
+        .line = scanner.line,
+        .type = TokenType::NUMBER,
+    });
+}
+
+static void addIntToken(Scanner& scanner)
+{
+    std::string s = std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start));
+
+    // TODO fix this atof
+    i64 i = atoll(s.data());
+
+    scanner.mem.tokens.emplace_back(Token{
+        .value = {.value = i, .literalType = LiteralType_I64 },
+        .line = scanner.line,
+        .type = TokenType::INTEGER,
+    });
+}
 
 static void addToken(Scanner& scanner, TokenType type)
 {
-    scanner.tokens.emplace_back(Token{
-        .lexMe = std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start)),
+    u32 index = addString(
+        scanner.mem, std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start)));
+    scanner.mem.tokens.emplace_back(Token{
+        //.lexMe = std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start)),
+        .value = {.stringIndex = index, .literalType = LiteralType_None },
         .line = scanner.line,
         .type = type,
         });
@@ -103,9 +134,13 @@ static void handleStringLiteral(Scanner& scanner)
         reportError(scanner, "Unterminated string!", "");
         return;
     }
-    scanner.tokens.emplace_back(Token{
+    u32 index = addString(
+        scanner.mem, std::string((const char*)&scanner.src[scanner.start + 1], (size_t)(scanner.pos - scanner.start - 1)));
+
+    scanner.mem.tokens.emplace_back(Token{
         // [start + 1, pos]
-        .lexMe = std::string((const char*)&scanner.src[scanner.start + 1], (size_t)(scanner.pos - scanner.start - 1)),
+        //.lexMe = std::string((const char*)&scanner.src[scanner.start + 1], (size_t)(scanner.pos - scanner.start - 1)),
+        .value = {.stringIndex = index, .literalType = LiteralType_String },
         .line = scanner.line,
         .type = TokenType::STRING,
         });
@@ -143,9 +178,13 @@ static void handleNumberString(Scanner& scanner)
         {
             advance(scanner);
         }
+        addNumberToken(scanner);
+    }
+    else
+    {
+        addIntToken(scanner);
     }
 
-    addToken(scanner, TokenType::NUMBER);
 }
 
 static void handleIdentifier(Scanner& scanner)
@@ -239,12 +278,14 @@ static void scanToken(Scanner& scanner)
 
 bool scanner_run(MyMemory& mem)
 {
-    Scanner& scanner = mem.scanner;
-    scanner.src = mem.scriptFileData.data();
-    scanner.srcLen = (i32)mem.scriptFileData.size();
-    scanner.pos = 0;
-    scanner.start = 0;
-    scanner.line = 1;
+    Scanner scanner = {
+        .mem = mem,
+        .src = mem.scriptFileData.data(),
+        .srcLen = (i32) mem.scriptFileData.size(),
+        .pos = 0,
+        .start = 0,
+        .line = 1
+    };
 
     while (!isAtAtEnd(scanner))
     {
@@ -252,16 +293,16 @@ bool scanner_run(MyMemory& mem)
         scanToken(scanner);
     }
 
-    scanner.tokens.emplace_back(Token{
-        .lexMe = "",
+    scanner.mem.tokens.emplace_back(Token{
+        //.lexMe = "",
         .line = scanner.line,
         .type = TokenType::END_OF_FILE
         });
 
 
-    for (const Token& token : scanner.tokens)
+    for (const Token& token : scanner.mem.tokens)
     {
-        printToken(token);
+        printToken(scanner.mem, token);
     }
 
     return true;

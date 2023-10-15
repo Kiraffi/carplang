@@ -1,8 +1,11 @@
 #pragma once
 
+#include "expr.h"
 #include "mytypes.h"
 #include <string>
 #include <vector>
+
+struct MyMemory;
 
 enum class TokenType: u8
 {
@@ -17,7 +20,7 @@ enum class TokenType: u8
     LESSER, LESSER_EQUAL,
 
     // Literals
-    IDENTIFIER, STRING, NUMBER,
+    IDENTIFIER, STRING, INTEGER, NUMBER,
 
     // Keywords
     CLASS, SUPER,
@@ -26,7 +29,8 @@ enum class TokenType: u8
     PRINT, RETURN,
     TRUE, FALSE, VAR,
 
-    // End of file
+
+    // End of file must be last
     END_OF_FILE,
 };
 
@@ -42,7 +46,7 @@ static const char* TOKEN_NAMES[] = {
     "LESSER", "LESSER_EQUAL",
 
     // Literals
-    "IDENTIFIER", "STRING", "NUMBER",
+    "IDENTIFIER", "STRING", "INTEGER", "NUMBER",
 
     // Keywords
     "CLASS", "SUPER",
@@ -51,20 +55,22 @@ static const char* TOKEN_NAMES[] = {
     "PRINT", "RETURN",
     "TRUE", "FALSE", "VAR",
 
-    // End of file
+
+    // End of file must be last
     "END_OF_FILE",
 };
+static_assert(sizeof(TOKEN_NAMES) / sizeof(const char*) == (i32)(TokenType::END_OF_FILE) + 1);
 
 struct Token
 {
     // ?
-    std::string lexMe;
-    // object? object;
+    //std::string lexMe;
+    ExprValue value;
     i32 line;
     TokenType type;
 
 };
 
-
-void printToken(const Token& token);
+std::string getTokenValueAsString(const MyMemory& mem, const Token& token);
+void printToken(const MyMemory& mem, const Token& token);
 

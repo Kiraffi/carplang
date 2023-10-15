@@ -5,6 +5,7 @@
 
 #include "mytypes.h"
 
+struct MyMemory;
 struct Scanner;
 struct Token;
 
@@ -13,5 +14,5 @@ struct Token;
 struct Scanner;
 void reportError(i32 line, const std::string& message, const std::string& where);
 void reportError(Scanner& scanner, const std::string& message, const std::string& where);
-void parserError(const Token& token, const std::string& message);
+void reportError(const MyMemory& mem, const Token& token, const std::string& message);
 

@@ -1,9 +1,17 @@
 // First carp program
-print "Hello carppy world!";
-123.4 // Number
+// print "Hello carppy world!";
+// 123.4 // Number
 
+37 + 49
 
-12 + 34 == 23; // Does this work?
-true; // True
-false; // False
+12 - 9
+3 * 7
+4 / 2
+2.5 * 3.1
+
+2 < 3
+
+// 12 + 34 == 23; // Does this work?
+// true; // True
+// false; // False
 

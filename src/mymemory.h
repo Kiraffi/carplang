@@ -9,8 +9,8 @@
 
 struct MyMemory
 {
-    Scanner scanner;
     std::vector<std::string> strings;
+    std::vector<Token> tokens;
     std::vector<Expr> expressions;
     std::vector<u8> scriptFileData;
 };

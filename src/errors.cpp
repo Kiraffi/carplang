@@ -1,5 +1,6 @@
 #include "errors.h"
 
+#include "mymemory.h"
 #include "scanner.h"
 #include "token.h"
 
@@ -14,7 +15,7 @@ void reportError(Scanner& scanner, const std::string& message, const std::string
 }
 
 
-void parserError(const Token& token, const std::string& message)
+void reportError(const MyMemory& mem, const Token& token, const std::string& message)
 {
     if(token.type == TokenType::END_OF_FILE)
     {
@@ -23,7 +24,8 @@ void parserError(const Token& token, const std::string& message)
     else
     {
         std::string s = " at end '";
-        s += token.lexMe;
+        //s += token.lexMe;
+        s += getTokenValueAsString(mem, token);
         s += "'";
         reportError(token.line, s, message);
     }

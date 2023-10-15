@@ -14,5 +14,15 @@ add_executable(carplang src/main.cpp
         "src/mytypes.h"
 
         "src/scanner.h"
-        "src/scanner.cpp"  "src/astparser.h" "src/astparser.cpp" "src/expr.h")
+        "src/scanner.cpp"
+
+        "src/astparser.h"
+        "src/astparser.cpp"
+        "src/expr.h"
+
+        "src/intepreter.h"
+        "src/intepreter.cpp"
+        "src/helpers.h"
+        "src/helpers.cpp"
+)
 

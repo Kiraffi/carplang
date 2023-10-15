@@ -9,7 +9,7 @@ struct MyMemory;
 
 struct Scanner
 {
-    std::vector<Token> tokens;
+    MyMemory& mem;
     const u8* src;
     i32 srcLen;
     i32 pos;
