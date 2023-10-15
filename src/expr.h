@@ -23,7 +23,8 @@ enum LiteralType : u32
 {
     LiteralType_None,
     LiteralType_Null,
-    LiteralType_U64,
+    LiteralType_Boolean,
+    LiteralType_I64,
     LiteralType_Double,
     LiteralType_String,
 };
@@ -51,6 +52,8 @@ struct Expr
 
     u32 leftExprIndex;
     u32 rightExprIndex;
+
+    u32 myExprIndex;
 
     ExprType exprType;
     LiteralType literalType;
