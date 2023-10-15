@@ -36,6 +36,7 @@ enum ExprType : u32
     ExprType_Grouping,
     ExprType_Literal,
     ExprType_Unary,
+    ExprType_Variable,
 };
 struct ExprValue
 {

@@ -21,3 +21,7 @@ double getDouble(const ExprValue& exprValue);
 i64 getInt(const ExprValue& exprValue);
 
 std::string stringify(const MyMemory& mem, const ExprValue& exprValue);
+
+const ExprValue& getConstValue(const MyMemory& mem, const Token& token);
+ExprValue& getMutableValue(MyMemory& mem, const Token& token);
+void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& value);

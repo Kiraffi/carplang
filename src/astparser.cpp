@@ -40,19 +40,20 @@ static const u32 previousIndex(const Parser& parser)
     return prevIndex;
 }
 
+static bool isAtEnd(const Parser& parser)
+{
+    return peek(parser).type == TokenType::END_OF_FILE;
+}
+
 static const Token& advance(Parser& parser)
 {
-    if (!(peek(parser).type == TokenType::END_OF_FILE))
+    if (!isAtEnd(parser))
     {
         parser.currentPos++;
     }
     return previous(parser);
 }
 
-static bool isAtEnd(const Parser& parser)
-{
-    return peek(parser).type == TokenType::END_OF_FILE;
-}
 
 
 static bool check(const Parser& parser, TokenType type)
@@ -139,18 +140,16 @@ static bool parenthesize(const MyMemory& mem, const std::string& name, u32 exprI
     return result;
 }
 
-static bool consume(Parser& parser, TokenType type, const std::string& message)
+static const Token& consume(Parser& parser, TokenType type, const std::string& message)
 {
     if(check(parser, type))
     {
-        advance(parser);
-        return true;
+        return advance(parser);
     }
 
     reportError(parser.mem, peek(parser), message);
     // TODO FIX THIS!
     exit(-1);
-    return false;
 }
 
 u32 primary(Parser& parser)
@@ -161,7 +160,12 @@ u32 primary(Parser& parser)
         return addExpr(parser.mem, { .exprValue = { .value = ~(i64(0)), .literalType = LiteralType_Boolean }, .exprType = ExprType_Literal,  });
     if(match(parser, TokenType::NIL))
         return addExpr(parser.mem, { .exprValue = { .value = 0, .literalType = LiteralType_Null}, .exprType = ExprType_Literal,  });
-
+    if(match(parser, TokenType::IDENTIFIER))
+    {
+        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        return addExpr(parser.mem,
+                       { .exprValue = prevToken.value, .exprType = ExprType_Variable, });
+    }
     if(match(parser, TokenType::STRING))
     {
         const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
@@ -316,7 +320,20 @@ static u32 expression(Parser& parser)
 
 static Statement statement(Parser& parser)
 {
-    if(match(parser, TokenType::PRINT))
+    if(match(parser, TokenType::VAR))
+    {
+        u32 tokenIndex = parser.currentPos;
+        consume(parser, TokenType::IDENTIFIER, "Expected variable name!");
+        if(!match(parser, TokenType::EQUAL))
+        {
+            reportError(parser.mem, peek(parser), "variable not set!");
+            exit(10);
+        }
+        u32 exprIndex = expression(parser);
+        consume(parser, TokenType::SEMICOLON, "Expect ';' after variable declaration!");
+        return Statement{ .expressionIndex = exprIndex, .tokenIndex = tokenIndex, .type = StatementType_VarDeclare };
+    }
+    else if(match(parser, TokenType::PRINT))
     {
         u32 exprIndex = expression(parser);
         consume(parser, TokenType::SEMICOLON, "Expect ';' after expression!");
@@ -329,6 +346,7 @@ static Statement statement(Parser& parser)
         return Statement{ .expressionIndex = exprIndex, .type = StatementType_Expression };
     }
 }
+
 
 
 

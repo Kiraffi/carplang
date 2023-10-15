@@ -1,6 +1,12 @@
 #include "helpers.h"
 
 #include "errors.h"
+#include "expr.h"
+#include "token.h"
+
+#include <algorithm>
+#include <unordered_map>
+#include <vector>
 
 u32 addToken(MyMemory& mem, const Token& token)
 {
@@ -85,4 +91,39 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
     exit(-5);
 }
 
+ExprValue& getMutableValue(MyMemory& mem, const Token& token)
+{
+    const std::string& findName = mem.strings[token.value.stringIndex];
+    auto iter = mem.variables.find(findName);
+    if(iter == mem.variables.end())
+    {
+        reportError(mem, token, "Variable not found!");
+        exit(20);
+    }
+    return iter->second;
+}
+
+const ExprValue& getConstValue(const MyMemory& mem, const Token& token)
+{
+    const std::string& findName = mem.strings[token.value.stringIndex];
+
+    auto iter = mem.variables.find(findName);
+    if(iter == mem.variables.end())
+    {
+        reportError(mem, token, "Variable not found!");
+        exit(20);
+    }
+    return iter->second;
+}
+
+void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& value)
+{
+    auto iter = mem.variables.find(name);
+    if(iter != mem.variables.end())
+    {
+        reportError(-12, "Variable already exists!", "");
+        exit(20);
+    }
+    mem.variables.insert({name, value});
+}
 

@@ -16,24 +16,25 @@ struct Keyword
 {
     const char* name;
     TokenType type;
+    u32 len;
 };
 
 static constexpr Keyword keywords[]{
-    Keyword{ "and", TokenType::AND },
-    Keyword{ "class", TokenType::CLASS },
-    Keyword{ "else", TokenType::ELSE },
-    Keyword{ "false", TokenType::FALSE },
-    Keyword{ "true", TokenType::TRUE },
-    Keyword{ "func", TokenType::FUNC },
-    Keyword{ "if", TokenType::IF },
-    Keyword{ "nil", TokenType::NIL },
-    Keyword{ "or", TokenType::OR },
-    Keyword{ "print", TokenType::PRINT },
-    Keyword{ "return", TokenType::RETURN },
-    Keyword{ "super", TokenType::SUPER },
-    Keyword{ "this", TokenType::THIS },
-    Keyword{ "var", TokenType::VAR },
-    Keyword{ "while", TokenType::WHILE },
+    Keyword{ "and", TokenType::AND, 3 },
+    Keyword{ "class", TokenType::CLASS, 5 },
+    Keyword{ "else", TokenType::ELSE, 4 },
+    Keyword{ "false", TokenType::FALSE, 5 },
+    Keyword{ "true", TokenType::TRUE, 4 },
+    Keyword{ "func", TokenType::FUNC, 4 },
+    Keyword{ "if", TokenType::IF, 2 },
+    Keyword{ "nil", TokenType::NIL, 3 },
+    Keyword{ "or", TokenType::OR, 2 },
+    Keyword{ "print", TokenType::PRINT, 5 },
+    Keyword{ "return", TokenType::RETURN, 6 },
+    Keyword{ "super", TokenType::SUPER, 5 },
+    Keyword{ "this", TokenType::THIS, 4 },
+    Keyword{ "var", TokenType::VAR, 3 },
+    Keyword{ "while", TokenType::WHILE, 5 },
 };
 
 
@@ -197,7 +198,7 @@ static void handleIdentifier(Scanner& scanner)
     const char* identifier = (const char*)&scanner.src[scanner.start];
     for (const Keyword& word : keywords)
     {
-        if (strncmp(identifier, word.name, sz) == 0)
+        if (strncmp(identifier, word.name, word.len) == 0)
         {
             addToken(scanner, word.type);
             return;

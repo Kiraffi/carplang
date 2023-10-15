@@ -6,6 +6,7 @@ enum StatementType : u8
 {
     StatementType_Expression,
     StatementType_Print,
+    StatementType_VarDeclare,
 
     StatementType_Count,
 };
@@ -13,5 +14,6 @@ enum StatementType : u8
 struct Statement
 {
     u32 expressionIndex;
+    u32 tokenIndex;
     StatementType type;
 };

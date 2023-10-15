@@ -25,5 +25,7 @@ add_executable(carplang src/main.cpp
         "src/helpers.h"
         "src/helpers.cpp"
         "src/statement.h"
+        src/environment.h
+        src/environment.cpp
 )
 

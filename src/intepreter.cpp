@@ -184,6 +184,11 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
             }
             return ExprValue{ .value = value, .literalType = expr.exprValue.literalType };
         }
+        case ExprType_Variable:
+        {
+                        
+        }
+        break;
     }
 
     reportError(-2, "No known type!", "");
