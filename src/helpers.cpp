@@ -91,29 +91,48 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
     DEBUG_BREAK_MACRO(-5);
 }
 
-ExprValue& getMutableValue(MyMemory& mem, const Token& token)
+const ExprValue& getConstValue(const MyMemory& mem, u32 stringIndex)
 {
-    const std::string& findName = mem.strings[token.value.stringIndex];
+    const std::string& findName = mem.strings[stringIndex];
+
     auto iter = mem.variables.find(findName);
     if(iter == mem.variables.end())
     {
-        reportError(mem, token, "Variable not found!");
+        reportError(mem, Token{}, "Variable not found!");
+        DEBUG_BREAK_MACRO(20);
+    }
+    return iter->second;
+
+}
+
+const ExprValue& getConstValue(const MyMemory& mem, const ExprValue& exprValue)
+{
+    return getConstValue(mem, exprValue.stringIndex);
+}
+const ExprValue& getConstValue(const MyMemory& mem, const Token& token)
+{
+    return getConstValue(mem, token.value);
+}
+
+
+ExprValue& getMutableValue(MyMemory& mem, u32 stringIndex)
+{
+    const std::string& findName = mem.strings[stringIndex];
+    auto iter = mem.variables.find(findName);
+    if(iter == mem.variables.end())
+    {
+        reportError(mem, Token{}, "Variable not found!");
         DEBUG_BREAK_MACRO(20);
     }
     return iter->second;
 }
-
-const ExprValue& getConstValue(const MyMemory& mem, const Token& token)
+ExprValue& getMutableValue(MyMemory& mem, const ExprValue& exprValue)
 {
-    const std::string& findName = mem.strings[token.value.stringIndex];
-
-    auto iter = mem.variables.find(findName);
-    if(iter == mem.variables.end())
-    {
-        reportError(mem, token, "Variable not found!");
-        DEBUG_BREAK_MACRO(20);
-    }
-    return iter->second;
+    return getMutableValue(mem, exprValue.stringIndex);
+}
+ExprValue& getMutableValue(MyMemory& mem, const Token& token)
+{
+    return getMutableValue(mem, token.value);
 }
 
 void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& value)

@@ -186,12 +186,15 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
         }
         case ExprType_Variable:
         {
-            const ExprValue& exprValue = getRightExpr(mem, expr).exprValue;
-            const Token& token = getTokenOper(mem, expr);
-            i64 value = exprValue.value;
-            return exprValue;
+            return getConstValue(mem, expr.exprValue);
         }
-        break;
+
+        case ExprType_Assign:
+        {
+            ExprValue& mutableValue = getMutableValue(mem, expr.tokenOperIndex);
+            mutableValue = expr.exprValue;
+            return mutableValue;
+        }
     }
 
     reportError(-2, "No known type!", "");
@@ -206,6 +209,8 @@ void intepret(MyMemory& mem, const Statement& statement)
     {
         case StatementType_Expression:
         {
+            const Expr& expr = mem.expressions[statement.expressionIndex];
+            evaluate(mem, expr);
         }
         break;
         case StatementType_Print:
@@ -218,7 +223,7 @@ void intepret(MyMemory& mem, const Statement& statement)
         {
             const Expr& expr = mem.expressions[statement.expressionIndex];
             ExprValue value = evaluate(mem, expr);
-            //defineVariable(mem, mem.strings[mem.tokens[statement.tokenIndex].value.stringIndex], value);
+            defineVariable(mem, mem.strings[mem.tokens[statement.tokenIndex].value.stringIndex], value);
         }
         break;
         case StatementType_Count:

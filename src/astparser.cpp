@@ -163,8 +163,8 @@ u32 primary(Parser& parser)
     if(match(parser, TokenType::IDENTIFIER))
     {
         const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
-        const ExprValue& value = getConstValue(parser.mem, prevToken);
-        return addExpr(parser.mem, { .exprValue = value, .exprType = ExprType_Literal });
+        //const ExprValue& value = getConstValue(parser.mem, prevToken);
+        return addExpr(parser.mem, { .exprValue = prevToken.value, .tokenOperIndex = prevToken.value.stringIndex, .exprType = ExprType_Variable });
 //                       { .exprValue = prevToken.value, .exprType = ExprType_Literal, });
     }
     if(match(parser, TokenType::STRING))
@@ -317,18 +317,22 @@ static u32 assignment(Parser& parser)
     {
         u32 prevIndex = previousIndex(parser);
         u32 exprRight = assignment(parser);
+
         const Expr& right = parser.mem.expressions[exprRight];
-        if(right.exprType == ExprType_Variable)
+        const Expr& expr = parser.mem.expressions[exprIndex];
+        if(expr.exprType == ExprType_Variable)
         {
             const Token& token = parser.mem.tokens[right.tokenOperIndex];
-            const std::string& name = parser.mem.strings[token.value.stringIndex];
-            Expr expr{
+            const std::string& name = parser.mem.strings[expr.exprValue.stringIndex];
+            Expr newExpr{
                 .exprValue = right.exprValue,
-                .tokenOperIndex = token.value.stringIndex,
+                .tokenOperIndex = expr.exprValue.stringIndex,
                 .exprType = ExprType_Assign
             };
-            return addExpr(parser.mem, expr);
+            return addExpr(parser.mem, newExpr);
         }
+        reportError(parser.mem, parser.mem.tokens[prevIndex], "Invalid target assignment!\n");
+
         LOG_ERROR("Invalid target assignment!");
         DEBUG_BREAK_MACRO(-30);
     }
@@ -363,7 +367,7 @@ static Statement statement(Parser& parser)
         consume(parser, TokenType::SEMICOLON, "Expect ';' after variable declaration!");
 
         // wrong place!
-        defineVariable(parser.mem, parser.mem.strings[parser.mem.tokens[tokenIndex].value.stringIndex], expr.exprValue);
+        //defineVariable(parser.mem, parser.mem.strings[parser.mem.tokens[tokenIndex].value.stringIndex], expr.exprValue);
 
         return Statement{ .expressionIndex = exprIndex, .tokenIndex = tokenIndex, .type = StatementType_VarDeclare };
     }

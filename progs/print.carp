@@ -1,8 +1,15 @@
-
 var a = 3;
-var b = 2;
+print "var a = 3; print a";
 print a;
+print "a = 7; print a";
+a = 7;
+print a;
+
+print "var b = 2; print b";
+var b = 2;
 print b;
+
+print "print a + b";
 print a + b;
 
 // First carp program
