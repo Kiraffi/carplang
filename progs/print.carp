@@ -56,3 +56,14 @@ print true;
 // true; // True
 // false; // False
 
+print "var c = 3; print c";
+var c = 3;
+print c;
+
+print "Scope { var c = 5; print c }";
+{
+    var c = 5;
+    print c;
+}
+print "out of scope; print c (should be 3)";
+print c;

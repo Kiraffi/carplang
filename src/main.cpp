@@ -5,7 +5,7 @@
 
 #include "astparser.h"
 #include "errors.h"
-#include "intepreter.h"
+#include "interpreter.h"
 #include "mymemory.h"
 #include "mytypes.h"
 #include "scanner.h"
@@ -29,7 +29,7 @@ static bool runFile(const char* filename)
         LOG_ERROR("Failed to open file.");
         return false;
     }
-    MyMemory mem;
+    MyMemory mem{};
 
     fseek(file, 0L, SEEK_END);
     size_t sz = ftell(file);
@@ -49,9 +49,10 @@ static bool runFile(const char* filename)
         // printf("%s\n", mem.scriptFileData.data());
         if(ast_generate(mem))
         {
-            for(const Statement& statement : mem.statements)
+            for(i32 index : mem.blocks[0].statementIndices)
             {
-                intepret(mem, statement);
+                const Statement& statement = mem.statements[index];
+                interpret(mem, statement);
             }
         }
     }

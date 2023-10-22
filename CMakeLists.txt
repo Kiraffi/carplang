@@ -20,12 +20,13 @@ add_executable(carplang src/main.cpp
         "src/astparser.cpp"
         "src/expr.h"
 
-        "src/intepreter.h"
-        "src/intepreter.cpp"
+        "src/interpreter.h"
+        "src/interpreter.cpp"
         "src/helpers.h"
         "src/helpers.cpp"
         "src/statement.h"
-        src/environment.h
-        src/environment.cpp
+        "src/environment.h"
+        "src/environment.cpp"
+        "src/block.h"
 )
 

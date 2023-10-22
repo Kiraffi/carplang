@@ -91,20 +91,28 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
     DEBUG_BREAK_MACRO(-5);
 }
 
-const ExprValue& getConstValue(const MyMemory& mem, u32 stringIndex)
+const ExprValue& getConstValue(const MyMemory& mem, const std::string& findName, u32 blockIndex)
 {
-    const std::string& findName = mem.strings[stringIndex];
-
-    auto iter = mem.variables.find(findName);
-    if(iter == mem.variables.end())
+    const Block& block = mem.blocks[blockIndex];
+    auto iter = block.variables.find(findName);
+    if(iter == block.variables.end())
     {
+        if(block.parentBlockIndex >= 0 && block.parentBlockIndex < mem.blocks.size())
+        {
+            return getConstValue(mem, findName, block.parentBlockIndex);
+        }
+
         reportError(mem, Token{}, "Variable not found!");
         DEBUG_BREAK_MACRO(20);
     }
     return iter->second;
 
 }
-
+const ExprValue& getConstValue(const MyMemory& mem, u32 stringIndex)
+{
+    const std::string &findName = mem.strings[stringIndex];
+    return getConstValue(mem, findName, mem.currentBlockIndex);
+}
 const ExprValue& getConstValue(const MyMemory& mem, const ExprValue& exprValue)
 {
     return getConstValue(mem, exprValue.stringIndex);
@@ -114,17 +122,28 @@ const ExprValue& getConstValue(const MyMemory& mem, const Token& token)
     return getConstValue(mem, token.value);
 }
 
-
-ExprValue& getMutableValue(MyMemory& mem, u32 stringIndex)
+ExprValue& getMutableValue(MyMemory& mem, const std::string& findName, u32 blockIndex)
 {
-    const std::string& findName = mem.strings[stringIndex];
-    auto iter = mem.variables.find(findName);
-    if(iter == mem.variables.end())
+    Block& block = mem.blocks[blockIndex];
+    auto iter = block.variables.find(findName);
+    if(iter == block.variables.end())
     {
+        if(block.parentBlockIndex >= 0 && block.parentBlockIndex < mem.blocks.size())
+        {
+            return getMutableValue(mem, findName, block.parentBlockIndex);
+        }
+
         reportError(mem, Token{}, "Variable not found!");
         DEBUG_BREAK_MACRO(20);
     }
     return iter->second;
+
+}
+
+ExprValue& getMutableValue(MyMemory& mem, u32 stringIndex)
+{
+    const std::string& findName = mem.strings[stringIndex];
+    return getMutableValue(mem, findName, mem.currentBlockIndex);
 }
 ExprValue& getMutableValue(MyMemory& mem, const ExprValue& exprValue)
 {
@@ -137,12 +156,13 @@ ExprValue& getMutableValue(MyMemory& mem, const Token& token)
 
 void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& value)
 {
-    auto iter = mem.variables.find(name);
-    if(iter != mem.variables.end())
+    Block& b = mem.blocks[mem.currentBlockIndex];
+    auto iter = b.variables.find(name);
+    if(iter != b.variables.end())
     {
         reportError(-12, "Variable already exists!", "");
         DEBUG_BREAK_MACRO(20);
     }
-    mem.variables.insert({name, value});
+    b.variables.insert({name, value});
 }
 

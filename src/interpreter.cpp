@@ -1,4 +1,4 @@
-#include "intepreter.h"
+#include "interpreter.h"
 
 #include "errors.h"
 #include "expr.h"
@@ -202,7 +202,7 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
 }
 
 
-void intepret(MyMemory& mem, const Statement& statement)
+void interpret(MyMemory& mem, const Statement& statement)
 {
     std::string s;
     switch(statement.type)
@@ -213,6 +213,17 @@ void intepret(MyMemory& mem, const Statement& statement)
             evaluate(mem, expr);
         }
         break;
+        case StatementType_Block:
+        {
+            const Block& b = mem.blocks[statement.blockIndex];
+            mem.currentBlockIndex = statement.blockIndex;
+            for(i32 index : b.statementIndices)
+            {
+                interpret(mem, mem.statements[index]);
+            }
+            mem.currentBlockIndex = b.parentBlockIndex;
+        }
+            break;
         case StatementType_Print:
         {
             const Expr& expr = mem.expressions[statement.expressionIndex];
@@ -236,7 +247,7 @@ void intepret(MyMemory& mem, const Statement& statement)
     }
 }
 
-void intepret(MyMemory& mem, const Expr& expr)
+void interpret(MyMemory& mem, const Expr& expr)
 {
     ExprValue value = evaluate(mem, expr);
     printf("%s\n", stringify(mem, value).data());

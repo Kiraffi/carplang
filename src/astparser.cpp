@@ -3,7 +3,7 @@
 #include "errors.h"
 #include "expr.h"
 #include "helpers.h"
-#include "intepreter.h"
+#include "interpreter.h"
 #include "mymemory.h"
 
 
@@ -14,6 +14,8 @@ struct Parser
 };
 
 static u32 expression(Parser& parser);
+static Statement declaration(Parser& parser);
+static i32 block(Parser& parser);
 
 
 static const Token LastToken{.type = TokenType::END_OF_FILE };
@@ -350,7 +352,7 @@ static u32 expression(Parser& parser)
 
 
 
-static Statement statement(Parser& parser)
+static Statement declaration(Parser& parser)
 {
     if(match(parser, TokenType::VAR))
     {
@@ -377,6 +379,11 @@ static Statement statement(Parser& parser)
         consume(parser, TokenType::SEMICOLON, "Expect ';' after expression!");
         return Statement{ .expressionIndex = exprIndex, .type = StatementType_Print };
     }
+    else if(match(parser, TokenType::LEFT_BRACE))
+    {
+        i32 blockIndex = block(parser);
+        return Statement{ .blockIndex = blockIndex, .type = StatementType_Block};
+    }
     else
     {
         u32 exprIndex = expression(parser);
@@ -386,6 +393,21 @@ static Statement statement(Parser& parser)
 }
 
 
+static i32 block(Parser& parser)
+{
+    i32 parentBlockIndex = parser.mem.currentBlockIndex;
+    i32 blockIndex = parser.mem.blocks.size();
+    parser.mem.blocks.emplace_back(Block{.parentBlockIndex = parentBlockIndex });
+    parser.mem.currentBlockIndex = blockIndex;
+    Block& block = parser.mem.blocks[blockIndex];
+    while(!check(parser, TokenType::RIGHT_BRACE) && !isAtEnd(parser))
+    {
+        block.statementIndices.push_back(addStatement(parser.mem, declaration(parser)));
+    }
+    consume(parser, TokenType::RIGHT_BRACE, "Expected '}' after block!");
+    parser.mem.currentBlockIndex = parentBlockIndex;
+    return blockIndex;
+}
 
 
 bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
@@ -492,9 +514,12 @@ bool ast_test(MyMemory& mem)
 bool ast_generate(MyMemory& mem)
 {
     Parser parser {.mem = mem, .currentPos = 0 };
+
+    mem.blocks.emplace_back(Block{.parentBlockIndex = -1});
     while(!isAtEnd(parser))
     {
-        addStatement(mem, statement(parser));
+        u32 statementIndex = addStatement(mem, declaration(parser));
+        mem.blocks[0].statementIndices.push_back(statementIndex);
     }
     return true;
     //return ast_test(mem);
