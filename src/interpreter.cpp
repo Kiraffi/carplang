@@ -191,8 +191,10 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
 
         case ExprType_Assign:
         {
-            ExprValue& mutableValue = getMutableValue(mem, expr.tokenOperIndex);
-            mutableValue = expr.exprValue;
+            const ExprValue& rightValue = evaluate(mem, mem.expressions[expr.rightExprIndex]);
+
+            ExprValue& mutableValue = getMutableValue(mem, expr.exprValue);
+            mutableValue = rightValue;
             return mutableValue;
         }
     }

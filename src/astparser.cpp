@@ -164,26 +164,26 @@ u32 primary(Parser& parser)
         return addExpr(parser.mem, { .exprValue = { .value = 0, .literalType = LiteralType_Null}, .exprType = ExprType_Literal,  });
     if(match(parser, TokenType::IDENTIFIER))
     {
-        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        const Token& prevToken = previous(parser);
         //const ExprValue& value = getConstValue(parser.mem, prevToken);
-        return addExpr(parser.mem, { .exprValue = prevToken.value, .tokenOperIndex = prevToken.value.stringIndex, .exprType = ExprType_Variable });
+        return addExpr(parser.mem, { .exprValue = prevToken.value, .secondTokenIndex = prevToken.value.stringIndex, .exprType = ExprType_Variable });
 //                       { .exprValue = prevToken.value, .exprType = ExprType_Literal, });
     }
     if(match(parser, TokenType::STRING))
     {
-        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        const Token& prevToken = previous(parser);
         return addExpr(parser.mem,
             { .exprValue = { .value = prevToken.value.value, .literalType = LiteralType_String }, .exprType = ExprType_Literal,  });
     }
     if(match(parser, TokenType::NUMBER))
     {
-        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        const Token& prevToken = previous(parser);
         Expr newExpr = { .exprValue = { .value = prevToken.value.value, .literalType = LiteralType_Double }, .exprType = ExprType_Literal,};
         return addExpr(parser.mem, newExpr);
     }
     if(match(parser, TokenType::INTEGER))
     {
-        const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
+        const Token& prevToken = previous(parser);
         Expr newExpr = { .exprValue = { .value = prevToken.value.value, .literalType = LiteralType_I64 }, .exprType = ExprType_Literal,};
         return addExpr(parser.mem, newExpr);
     }
@@ -327,8 +327,11 @@ static u32 assignment(Parser& parser)
             const Token& token = parser.mem.tokens[right.tokenOperIndex];
             const std::string& name = parser.mem.strings[expr.exprValue.stringIndex];
             Expr newExpr{
-                .exprValue = right.exprValue,
-                .tokenOperIndex = expr.exprValue.stringIndex,
+                .exprValue = expr.exprValue,
+                //.tokenOperIndex = right.tokenOperIndex,
+                .tokenOperIndex = prevIndex,
+                //.tokenOperIndex = expr.exprValue.stringIndex,
+                .rightExprIndex = exprRight,
                 .exprType = ExprType_Assign
             };
             return addExpr(parser.mem, newExpr);
@@ -364,8 +367,8 @@ static Statement declaration(Parser& parser)
             DEBUG_BREAK_MACRO(10);
         }
         u32 exprIndex = expression(parser);
-        Expr& expr = parser.mem.expressions[exprIndex];
-        expr.tokenOperIndex = tokenIndex;
+        //Expr& expr = parser.mem.expressions[exprIndex];
+        //expr.tokenOperIndex = tokenIndex;
         consume(parser, TokenType::SEMICOLON, "Expect ';' after variable declaration!");
 
         // wrong place!

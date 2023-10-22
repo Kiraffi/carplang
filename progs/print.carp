@@ -67,3 +67,21 @@ print "Scope { var c = 5; print c }";
 }
 print "out of scope; print c (should be 3)";
 print c;
+
+var q = 1;
+print q;
+
+q = q + 4;
+print q;
+
+print "var s = 11; var t = 13; print s; print t; print s + t;";
+var s = 11;
+var t = 13;
+print s;
+print t;
+print s + t;
+
+print "var e = s + 3; print e;";
+var e = s + 3;
+print e;
+
