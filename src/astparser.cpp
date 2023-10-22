@@ -149,7 +149,7 @@ static const Token& consume(Parser& parser, TokenType type, const std::string& m
 
     reportError(parser.mem, peek(parser), message);
     // TODO FIX THIS!
-    exit(-1);
+    DEBUG_BREAK_MACRO(-1);
 }
 
 u32 primary(Parser& parser)
@@ -163,8 +163,9 @@ u32 primary(Parser& parser)
     if(match(parser, TokenType::IDENTIFIER))
     {
         const Token& prevToken = parser.mem.tokens[previousIndex(parser)];
-        return addExpr(parser.mem,
-                       { .exprValue = prevToken.value, .exprType = ExprType_Variable, });
+        const ExprValue& value = getConstValue(parser.mem, prevToken);
+        return addExpr(parser.mem, { .exprValue = value, .exprType = ExprType_Literal });
+//                       { .exprValue = prevToken.value, .exprType = ExprType_Literal, });
     }
     if(match(parser, TokenType::STRING))
     {
@@ -192,7 +193,7 @@ u32 primary(Parser& parser)
     }
 
     reportError(parser.mem, peek(parser), "No matching type for primary!\n");
-    exit(-1);
+    DEBUG_BREAK_MACRO(-1);
 }
 
 
@@ -308,12 +309,39 @@ u32 equality(Parser& parser)
 }
 
 
+static u32 assignment(Parser& parser)
+{
+    u32 exprIndex = equality(parser);
+
+    while(match(parser, TokenType::EQUAL))
+    {
+        u32 prevIndex = previousIndex(parser);
+        u32 exprRight = assignment(parser);
+        const Expr& right = parser.mem.expressions[exprRight];
+        if(right.exprType == ExprType_Variable)
+        {
+            const Token& token = parser.mem.tokens[right.tokenOperIndex];
+            const std::string& name = parser.mem.strings[token.value.stringIndex];
+            Expr expr{
+                .exprValue = right.exprValue,
+                .tokenOperIndex = token.value.stringIndex,
+                .exprType = ExprType_Assign
+            };
+            return addExpr(parser.mem, expr);
+        }
+        LOG_ERROR("Invalid target assignment!");
+        DEBUG_BREAK_MACRO(-30);
+    }
+    return exprIndex;
+}
 
 
 
 static u32 expression(Parser& parser)
 {
-    return equality(parser);
+    u32 exprIndex = assignment(parser);
+
+    return exprIndex;
 }
 
 
@@ -327,10 +355,16 @@ static Statement statement(Parser& parser)
         if(!match(parser, TokenType::EQUAL))
         {
             reportError(parser.mem, peek(parser), "variable not set!");
-            exit(10);
+            DEBUG_BREAK_MACRO(10);
         }
         u32 exprIndex = expression(parser);
+        Expr& expr = parser.mem.expressions[exprIndex];
+        expr.tokenOperIndex = tokenIndex;
         consume(parser, TokenType::SEMICOLON, "Expect ';' after variable declaration!");
+
+        // wrong place!
+        defineVariable(parser.mem, parser.mem.strings[parser.mem.tokens[tokenIndex].value.stringIndex], expr.exprValue);
+
         return Statement{ .expressionIndex = exprIndex, .tokenIndex = tokenIndex, .type = StatementType_VarDeclare };
     }
     else if(match(parser, TokenType::PRINT))

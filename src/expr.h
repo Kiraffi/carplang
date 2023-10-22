@@ -27,6 +27,7 @@ enum LiteralType : u32
     LiteralType_I64,
     LiteralType_Double,
     LiteralType_String,
+    LiteralType_Identifier,
 };
 
 enum ExprType : u32
@@ -37,6 +38,7 @@ enum ExprType : u32
     ExprType_Literal,
     ExprType_Unary,
     ExprType_Variable,
+    ExprType_Assign,
 };
 struct ExprValue
 {
@@ -51,17 +53,14 @@ struct ExprValue
 
 struct Expr
 {
-    union
+    ExprValue exprValue;
+    struct
     {
-        ExprValue exprValue;
-        struct
-        {
-            u32 tokenOperIndex;
-            u32 secondTokenIndex;
+        u32 tokenOperIndex;
+        u32 secondTokenIndex;
 
-            u32 leftExprIndex;
-            u32 rightExprIndex;
-        };
+        u32 leftExprIndex;
+        u32 rightExprIndex;
     };
     u32 myExprIndex;
 

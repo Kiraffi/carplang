@@ -23,3 +23,11 @@ static bool isAlphaNumUnderscore(char c)
 {
     return isalnum(c) || c == '_';
 }
+
+#if _MSC_VER
+#define DEBUG_BREAK_MACRO() __debugbreak()
+#else
+#include <signal.h>
+//#define DEBUG_BREAK_MACRO __builtin_trap()
+#define DEBUG_BREAK_MACRO(debugBreakExitIndex) raise(SIGTRAP); exit(debugBreakExitIndex);
+#endif

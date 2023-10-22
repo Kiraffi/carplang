@@ -88,7 +88,7 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
     }
 
     reportError(-1, "Literal type unknown", "");
-    exit(-5);
+    DEBUG_BREAK_MACRO(-5);
 }
 
 ExprValue& getMutableValue(MyMemory& mem, const Token& token)
@@ -98,7 +98,7 @@ ExprValue& getMutableValue(MyMemory& mem, const Token& token)
     if(iter == mem.variables.end())
     {
         reportError(mem, token, "Variable not found!");
-        exit(20);
+        DEBUG_BREAK_MACRO(20);
     }
     return iter->second;
 }
@@ -111,7 +111,7 @@ const ExprValue& getConstValue(const MyMemory& mem, const Token& token)
     if(iter == mem.variables.end())
     {
         reportError(mem, token, "Variable not found!");
-        exit(20);
+        DEBUG_BREAK_MACRO(20);
     }
     return iter->second;
 }
@@ -122,7 +122,7 @@ void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& val
     if(iter != mem.variables.end())
     {
         reportError(-12, "Variable already exists!", "");
-        exit(20);
+        DEBUG_BREAK_MACRO(20);
     }
     mem.variables.insert({name, value});
 }

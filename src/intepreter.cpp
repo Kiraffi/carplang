@@ -119,7 +119,7 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
         case ExprType_None:
         {
             reportError(-1, "Expr type none!", "");
-            exit(-2);
+            DEBUG_BREAK_MACRO(-2);
         }
         break;
         case ExprType_Binary:
@@ -147,7 +147,7 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
             else
             {
                 reportError(mem, token, "Left and Right values aren't matching");
-                exit(-4);
+                DEBUG_BREAK_MACRO(-4);
             }
         }
         break;
@@ -171,7 +171,7 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
                     if(!checkNumber(exprValue))
                     {
                         reportError(mem, token, "Unary not number");
-                        exit(-3);
+                        DEBUG_BREAK_MACRO(-3);
                     }
                     value = -value;
                     break;
@@ -180,19 +180,22 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
                     break;
                 default:
                     reportError(mem, token, "Not recognized unary type!");
-                    exit(-4);
+                    DEBUG_BREAK_MACRO(-4);
             }
             return ExprValue{ .value = value, .literalType = expr.exprValue.literalType };
         }
         case ExprType_Variable:
         {
-                        
+            const ExprValue& exprValue = getRightExpr(mem, expr).exprValue;
+            const Token& token = getTokenOper(mem, expr);
+            i64 value = exprValue.value;
+            return exprValue;
         }
         break;
     }
 
     reportError(-2, "No known type!", "");
-    exit(-3);
+    DEBUG_BREAK_MACRO(-3);
 }
 
 
@@ -211,12 +214,20 @@ void intepret(MyMemory& mem, const Statement& statement)
             printf("%s\n", stringify(mem, evaluate(mem, expr)).data());
         }
         break;
+        case StatementType_VarDeclare:
+        {
+            const Expr& expr = mem.expressions[statement.expressionIndex];
+            ExprValue value = evaluate(mem, expr);
+            //defineVariable(mem, mem.strings[mem.tokens[statement.tokenIndex].value.stringIndex], value);
+        }
+        break;
         case StatementType_Count:
         {
             reportError(-3, "Statement count", "");
-            exit(-50);
+            DEBUG_BREAK_MACRO(-50);
         }
         break;
+
     }
 }
 

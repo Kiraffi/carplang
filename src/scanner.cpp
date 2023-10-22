@@ -109,11 +109,14 @@ static void addIntToken(Scanner& scanner)
 
 static void addToken(Scanner& scanner, TokenType type)
 {
+    LiteralType literalType = type == TokenType::IDENTIFIER
+        ? LiteralType_Identifier
+        : LiteralType_None;
     u32 index = addString(
         scanner.mem, std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start)));
     scanner.mem.tokens.emplace_back(Token{
         //.lexMe = std::string((const char*)&scanner.src[scanner.start], (size_t)(scanner.pos - scanner.start)),
-        .value = {.stringIndex = index, .literalType = LiteralType_None },
+        .value = {.stringIndex = index, .literalType = literalType },
         .line = scanner.line,
         .type = type,
         });
