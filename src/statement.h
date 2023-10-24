@@ -9,6 +9,8 @@ enum StatementType : u8
     StatementType_VarDeclare,
     StatementType_Block,
 
+    StatementType_If,
+
     StatementType_Count,
 };
 
@@ -19,6 +21,14 @@ struct Statement
         u32 expressionIndex;
         i32 blockIndex;
     };
-    u32 tokenIndex;
+    union
+    {
+        u32 tokenIndex;
+        struct
+        {
+            u32 ifStatementIndex;
+            u32 elseStatementIndex;
+        };
+    };
     StatementType type;
 };

@@ -85,3 +85,12 @@ print "var e = s + 3; print e;";
 var e = s + 3;
 print e;
 
+if(13 > 12)
+{
+    print "wrong";
+}
+else
+{
+    print "correct";
+}
+

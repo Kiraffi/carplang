@@ -11,6 +11,23 @@
 
 static constexpr i64 NegFull = ~i64(0);
 
+static bool isTruthy(const MyMemory& mem, const ExprValue& value)
+{
+    switch(value.literalType)
+    {
+        case LiteralType_Null:
+        case LiteralType_None:
+            return false;
+        case LiteralType_Double:
+        case LiteralType_I64:
+        case LiteralType_Boolean:
+            return value.value != 0;
+        case LiteralType_String:
+            return !mem.strings[value.stringIndex].empty();
+    }
+    return false;
+}
+
 static ExprValue doDoubleOperOnBinary(TokenType type, double a, double b)
 {
     ExprValue value{.literalType = LiteralType_Double };
@@ -237,6 +254,23 @@ void interpret(MyMemory& mem, const Statement& statement)
             const Expr& expr = mem.expressions[statement.expressionIndex];
             ExprValue value = evaluate(mem, expr);
             defineVariable(mem, mem.strings[mem.tokens[statement.tokenIndex].value.stringIndex], value);
+        }
+        break;
+        case StatementType_If:
+        {
+            const Expr& expr = mem.expressions[statement.expressionIndex];
+
+            if(isTruthy(mem, evaluate(mem, expr)))
+            {
+                const Statement& statementIf = mem.statements[statement.ifStatementIndex];
+                interpret(mem, statementIf);
+            }
+            else if(statement.elseStatementIndex >= 0 && statement.elseStatementIndex < mem.statements.size())
+            {
+                const Statement& statementElse = mem.statements[statement.elseStatementIndex];
+                interpret(mem, statementElse);
+            }
+            break;
         }
         break;
         case StatementType_Count:

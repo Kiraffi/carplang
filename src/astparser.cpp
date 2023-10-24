@@ -367,14 +367,28 @@ static Statement declaration(Parser& parser)
             DEBUG_BREAK_MACRO(10);
         }
         u32 exprIndex = expression(parser);
-        //Expr& expr = parser.mem.expressions[exprIndex];
-        //expr.tokenOperIndex = tokenIndex;
         consume(parser, TokenType::SEMICOLON, "Expect ';' after variable declaration!");
 
-        // wrong place!
-        //defineVariable(parser.mem, parser.mem.strings[parser.mem.tokens[tokenIndex].value.stringIndex], expr.exprValue);
-
         return Statement{ .expressionIndex = exprIndex, .tokenIndex = tokenIndex, .type = StatementType_VarDeclare };
+    }
+    else if(match(parser, TokenType::IF))
+    {
+        consume(parser, TokenType::LEFT_PAREN, "Expect '(' after if!");
+        u32 exprIndex = expression(parser);
+        consume(parser, TokenType::RIGHT_PAREN, "Expect ')' after if condition!");
+
+        u32 statementIndex = addStatement(parser.mem, declaration(parser));
+        u32 elseStatementIndex = ~0u;
+        if(match(parser, TokenType::ELSE))
+        {
+            elseStatementIndex = addStatement(parser.mem, declaration(parser));
+        }
+        return Statement{
+            .expressionIndex = exprIndex,
+            .ifStatementIndex = statementIndex,
+            .elseStatementIndex = elseStatementIndex,
+            .type = StatementType_If
+        };
     }
     else if(match(parser, TokenType::PRINT))
     {
@@ -387,6 +401,7 @@ static Statement declaration(Parser& parser)
         i32 blockIndex = block(parser);
         return Statement{ .blockIndex = blockIndex, .type = StatementType_Block};
     }
+
     else
     {
         u32 exprIndex = expression(parser);
