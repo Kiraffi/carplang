@@ -135,6 +135,9 @@ fn fooFn(hihi)
 {
     print hihi;
     print "hihi";
+    if(hihi > 0)
+        //  hihi = hihi -1;
+        fooFn(hihi - 1);
 }
 fooFn(3);
 
