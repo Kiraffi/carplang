@@ -40,7 +40,7 @@ static bool runFile(const char* filename)
     mem.scriptFileData[sz] = '\0';
     fclose(file);
 
-    if(!scanner_run(mem))
+    if(!scanner_run(mem, false))
     {
         printf("Some failure in: %s\n", filename);
     }

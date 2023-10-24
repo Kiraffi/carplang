@@ -310,10 +310,53 @@ u32 equality(Parser& parser)
     return exprIndex;
 }
 
+static u32 logicalAnd(Parser& parser)
+{
+    u32 exprIndex = equality(parser);
+    while(match(parser, TokenType::AND))
+    {
+        u32 prevIndex = previousIndex(parser);
+        u32 rightIndex = equality(parser);
+
+        Expr expr{
+            .tokenOperIndex = prevIndex,
+            .leftExprIndex = exprIndex,
+            .rightExprIndex = rightIndex,
+            .exprType = ExprType_Logical
+        };
+
+        exprIndex = addExpr(parser.mem, expr);
+
+    }
+
+    return exprIndex;
+}
+
+static u32 logicalOr(Parser& parser)
+{
+    u32 exprIndex = logicalAnd(parser);
+    while(match(parser, TokenType::OR))
+    {
+        u32 prevIndex = previousIndex(parser);
+        u32 rightIndex = equality(parser);
+
+        Expr expr{
+            .tokenOperIndex = prevIndex,
+            .leftExprIndex = exprIndex,
+            .rightExprIndex = rightIndex,
+            .exprType = ExprType_Logical
+        };
+
+        exprIndex = addExpr(parser.mem, expr);
+
+    }
+
+    return exprIndex;
+}
 
 static u32 assignment(Parser& parser)
 {
-    u32 exprIndex = equality(parser);
+    u32 exprIndex = logicalOr(parser);
 
     while(match(parser, TokenType::EQUAL))
     {

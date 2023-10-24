@@ -39,6 +39,7 @@ enum ExprType : u32
     ExprType_Unary,
     ExprType_Variable,
     ExprType_Assign,
+    ExprType_Logical,
 };
 struct ExprValue
 {

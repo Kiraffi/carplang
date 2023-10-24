@@ -21,6 +21,7 @@ struct Keyword
 
 static constexpr Keyword keywords[]{
     Keyword{ "and", TokenType::AND, 3 },
+    Keyword{ "&&", TokenType::AND, 2 },
     Keyword{ "class", TokenType::CLASS, 5 },
     Keyword{ "else", TokenType::ELSE, 4 },
     Keyword{ "false", TokenType::FALSE, 5 },
@@ -29,6 +30,7 @@ static constexpr Keyword keywords[]{
     Keyword{ "if", TokenType::IF, 2 },
     Keyword{ "nil", TokenType::NIL, 3 },
     Keyword{ "or", TokenType::OR, 2 },
+    Keyword{ "||", TokenType::OR, 2 },
     Keyword{ "print", TokenType::PRINT, 5 },
     Keyword{ "return", TokenType::RETURN, 6 },
     Keyword{ "super", TokenType::SUPER, 5 },
@@ -201,7 +203,7 @@ static void handleIdentifier(Scanner& scanner)
     const char* identifier = (const char*)&scanner.src[scanner.start];
     for (const Keyword& word : keywords)
     {
-        if (strncmp(identifier, word.name, word.len) == 0)
+        if (sz == word.len && strncmp(identifier, word.name, word.len) == 0)
         {
             addToken(scanner, word.type);
             return;
@@ -217,70 +219,81 @@ static void scanToken(Scanner& scanner)
     char c = (char)advance(scanner);
     switch (c)
     {
-    case '(': addToken(scanner, TokenType::LEFT_PAREN); break;
-    case ')': addToken(scanner, TokenType::RIGHT_PAREN); break;
-    case '{': addToken(scanner, TokenType::LEFT_BRACE); break;
-    case '}': addToken(scanner, TokenType::RIGHT_BRACE); break;
-    case ',': addToken(scanner, TokenType::COMMA); break;
-    case '.': addToken(scanner, TokenType::DOT); break;
-    case '-': addToken(scanner, TokenType::MINUS); break;
-    case '+': addToken(scanner, TokenType::PLUS); break;
-    case ';': addToken(scanner, TokenType::SEMICOLON); break;
-    case '*': addToken(scanner, TokenType::STAR); break;
-    case '\0': addToken(scanner, TokenType::END_OF_FILE); break;
-        // Double char checks
-    case '!': addToken(scanner, matchChar(scanner, '=') ? TokenType::BANG_EQUAL : TokenType::BANG); break;
-    case '=': addToken(scanner, matchChar(scanner, '=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL); break;
-    case '<': addToken(scanner, matchChar(scanner, '=') ? TokenType::LESSER_EQUAL : TokenType::LESSER); break;
-    case '>': addToken(scanner, matchChar(scanner, '=') ? TokenType::GREATER_EQUAL : TokenType::GREATER); break;
+        case '(': addToken(scanner, TokenType::LEFT_PAREN); break;
+        case ')': addToken(scanner, TokenType::RIGHT_PAREN); break;
+        case '{': addToken(scanner, TokenType::LEFT_BRACE); break;
+        case '}': addToken(scanner, TokenType::RIGHT_BRACE); break;
+        case ',': addToken(scanner, TokenType::COMMA); break;
+        case '.': addToken(scanner, TokenType::DOT); break;
+        case '-': addToken(scanner, TokenType::MINUS); break;
+        case '+': addToken(scanner, TokenType::PLUS); break;
+        case ';': addToken(scanner, TokenType::SEMICOLON); break;
+        case '*': addToken(scanner, TokenType::STAR); break;
+        case '\0': addToken(scanner, TokenType::END_OF_FILE); break;
+            // Double char checks
+        case '!': addToken(scanner, matchChar(scanner, '=') ? TokenType::BANG_EQUAL : TokenType::BANG); break;
+        case '=': addToken(scanner, matchChar(scanner, '=') ? TokenType::EQUAL_EQUAL : TokenType::EQUAL); break;
+        case '<': addToken(scanner, matchChar(scanner, '=') ? TokenType::LESSER_EQUAL : TokenType::LESSER); break;
+        case '>': addToken(scanner, matchChar(scanner, '=') ? TokenType::GREATER_EQUAL : TokenType::GREATER); break;
 
-        // comments //
-    case '/':
-        if (matchChar(scanner, '/'))
-        {
-            while (peek(scanner) != '\n' && !isAtAtEnd(scanner))
+            // comments //
+        case '/':
+            if (matchChar(scanner, '/'))
             {
-                advance(scanner);
+                while (peek(scanner) != '\n' && !isAtAtEnd(scanner))
+                {
+                    advance(scanner);
+                }
             }
-        }
-        else
-        {
-            addToken(scanner, TokenType::SLASH);
-        }
-        break;
+            else
+            {
+                addToken(scanner, TokenType::SLASH);
+            }
+            break;
 
-        // White spacessss...
-    case '\t':
-    case '\r':
-    case ' ':
-        // ignore white space
-        break;
-    case '\n':
-        scanner.line++;
-        break;
+            // White spacessss...
+        case '\t':
+        case '\r':
+        case ' ':
+            // ignore white space
+            break;
+        case '\n':
+            scanner.line++;
+            break;
 
-        // String literal
-    case '"': handleStringLiteral(scanner); break;
+            // String literal
+        case '"': handleStringLiteral(scanner); break;
 
-    default:
-        if (isdigit(c))
+        default:
         {
-            handleNumberString(scanner);
+            bool handled = false;
+            if (isdigit(c))
+            {
+                handleNumberString(scanner);
+            }
+            else if (isalpha(c))
+            {
+                handleIdentifier(scanner);
+            }
+            else if(c == '|' && matchChar(scanner, '|'))
+            {
+                addToken(scanner, TokenType::OR);
+            }
+            else if(c == '&' && matchChar(scanner, '&'))
+            {
+                addToken(scanner, TokenType::AND);
+            }
+            else
+            {
+                reportError(scanner, "Unexpected error on scanner.", "");
+            }
+            break;
         }
-        else if (isalpha(c))
-        {
-            handleIdentifier(scanner);
-        }
-        else
-        {
-            reportError(scanner, "Unexpected error on scanner.", "");
-        }
-        break;
     }
 
 }
 
-bool scanner_run(MyMemory& mem)
+bool scanner_run(MyMemory& mem, bool printTokens)
 {
     Scanner scanner = {
         .mem = mem,
@@ -303,11 +316,12 @@ bool scanner_run(MyMemory& mem)
         .type = TokenType::END_OF_FILE
         });
 
-
-    //for (const Token& token : scanner.mem.tokens)
-    //{
-    //    printToken(scanner.mem, token);
-    //}
-
+    if(printTokens)
+    {
+        for (const Token &token: scanner.mem.tokens)
+        {
+            printToken(scanner.mem, token);
+        }
+    }
     return true;
 }

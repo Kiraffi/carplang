@@ -141,8 +141,8 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
         break;
         case ExprType_Binary:
         {
-            const ExprValue& leftValue = evaluate(mem, mem.expressions[expr.leftExprIndex]);
-            const ExprValue& rightValue = evaluate(mem, mem.expressions[expr.rightExprIndex]);
+            const ExprValue& leftValue = evaluate(mem, getLeftExprValue(mem, expr));
+            const ExprValue& rightValue = evaluate(mem, getRightExpr(mem, expr));
             const Token& token = getTokenOper(mem, expr);
 
             if(checkNumber(leftValue) && checkNumber(rightValue))
@@ -168,6 +168,7 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
             }
         }
         break;
+
         case ExprType_Grouping:
         {
 
@@ -208,11 +209,28 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
 
         case ExprType_Assign:
         {
-            const ExprValue& rightValue = evaluate(mem, mem.expressions[expr.rightExprIndex]);
+            const ExprValue& rightValue = evaluate(mem, getRightExpr(mem, expr));
 
             ExprValue& mutableValue = getMutableValue(mem, expr.exprValue);
             mutableValue = rightValue;
             return mutableValue;
+        }
+
+        case ExprType_Logical:
+        {
+            const ExprValue& leftValue = evaluate(mem, getLeftExprValue(mem, expr));
+            const Token& token = getTokenOper(mem, expr);
+            bool leftTruthy = isTruthy(mem, leftValue);
+            if(token.type == TokenType::OR && leftTruthy)
+            {
+                return leftValue;
+            }
+            else if(token.type == TokenType::AND && !leftTruthy)
+            {
+                return leftValue;
+            }
+            return evaluate(mem, getRightExpr(mem, expr));
+
         }
     }
 

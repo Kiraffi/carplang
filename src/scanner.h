@@ -18,5 +18,5 @@ struct Scanner
     bool hasErrors;
 };
 
-bool scanner_run(MyMemory& mem);
+bool scanner_run(MyMemory& mem, bool printTokens);
 
