@@ -433,6 +433,19 @@ static Statement declaration(Parser& parser)
             .type = StatementType_If
         };
     }
+    else if(match(parser, TokenType::WHILE))
+    {
+        consume(parser, TokenType::LEFT_PAREN, "Expected '(' after while!");
+        u32 conditionExprIndex = expression(parser);
+        consume(parser, TokenType::RIGHT_PAREN, "Expected ')' after condition!");
+
+        u32 whileStatementIndex = addStatement(parser.mem, declaration(parser));
+
+        return Statement{
+            .expressionIndex = conditionExprIndex,
+            .whileStatementIndex = whileStatementIndex,
+            .type = StatementType_While };
+    }
     else if(match(parser, TokenType::PRINT))
     {
         u32 exprIndex = expression(parser);

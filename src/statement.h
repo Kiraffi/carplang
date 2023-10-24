@@ -10,6 +10,7 @@ enum StatementType : u8
     StatementType_Block,
 
     StatementType_If,
+    StatementType_While,
 
     StatementType_Count,
 };
@@ -24,6 +25,7 @@ struct Statement
     union
     {
         u32 tokenIndex;
+        u32 whileStatementIndex;
         struct
         {
             u32 ifStatementIndex;

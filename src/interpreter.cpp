@@ -252,9 +252,10 @@ void interpret(MyMemory& mem, const Statement& statement)
         break;
         case StatementType_Block:
         {
-            const Block& b = mem.blocks[statement.blockIndex];
+            Block& b = mem.blocks[statement.blockIndex];
             mem.currentBlockIndex = statement.blockIndex;
-            for(i32 index : b.statementIndices)
+            b.variables.clear();
+            for(u32 index : b.statementIndices)
             {
                 interpret(mem, mem.statements[index]);
             }
@@ -288,7 +289,15 @@ void interpret(MyMemory& mem, const Statement& statement)
                 const Statement& statementElse = mem.statements[statement.elseStatementIndex];
                 interpret(mem, statementElse);
             }
-            break;
+        }
+        break;
+        case StatementType_While:
+        {
+            while(isTruthy(mem, evaluate(mem, mem.expressions[statement.expressionIndex])))
+            {
+                const Statement& statementWhile = mem.statements[statement.whileStatementIndex];
+                interpret(mem, statementWhile);
+            }
         }
         break;
         case StatementType_Count:

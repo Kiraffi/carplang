@@ -115,3 +115,16 @@ if(1 && 1)
 {
     print "and with &&";
 }
+
+var loopVar = 10;
+while(loopVar)
+{
+    print loopVar;
+    loopVar = loopVar - 1;
+}
+
+while(loopVar < 10)
+{
+    print loopVar;
+    loopVar = loopVar + 1;
+}
