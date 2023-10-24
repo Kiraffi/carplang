@@ -14,8 +14,8 @@ struct Parser
 };
 
 static u32 expression(Parser& parser);
-static Statement declaration(Parser& parser);
-static i32 block(Parser& parser);
+static u32 declaration(Parser& parser);
+static i32 block(Parser& parser, i32 parentBlockIndex);
 
 
 static const Token LastToken{.type = TokenType::END_OF_FILE };
@@ -154,7 +154,7 @@ static const Token& consume(Parser& parser, TokenType type, const std::string& m
     DEBUG_BREAK_MACRO(-1);
 }
 
-u32 primary(Parser& parser)
+static u32 primary(Parser& parser)
 {
     if(match(parser, TokenType::FALSE))
         return addExpr(parser.mem, { .exprValue = {.value = 0, .literalType = LiteralType_Boolean }, .exprType = ExprType_Literal,  });
@@ -166,7 +166,7 @@ u32 primary(Parser& parser)
     {
         const Token& prevToken = previous(parser);
         //const ExprValue& value = getConstValue(parser.mem, prevToken);
-        return addExpr(parser.mem, { .exprValue = prevToken.value, .secondTokenIndex = prevToken.value.stringIndex, .exprType = ExprType_Variable });
+        return addExpr(parser.mem, { .exprValue = prevToken.value, .exprType = ExprType_Variable });
 //                       { .exprValue = prevToken.value, .exprType = ExprType_Literal, });
     }
     if(match(parser, TokenType::STRING))
@@ -198,8 +198,52 @@ u32 primary(Parser& parser)
     DEBUG_BREAK_MACRO(-1);
 }
 
+static u32 finishCall(Parser& parser, u32 callee)
+{
+    Expr expr {
+        .callee = callee,
+        .exprType = ExprType::ExprType_CallFn
+    };
 
-u32 unary(Parser& parser)
+    u32 args = 0;
+    if(!check(parser, TokenType::RIGHT_PAREN))
+    {
+        do
+        {
+            if(args == 4)
+            {
+                reportError(parser.mem, peek(parser), "Only 4 arguments are legal on fn call!\n");
+                DEBUG_BREAK_MACRO(-1);
+            }
+
+            u32 exprIndex = expression(parser);
+            expr.callParams[args] = exprIndex;
+            args++;
+        } while(match(parser, TokenType::COMMA));
+
+    }
+    expr.callParamAmount = args;
+    //why do we need? const Token& token =
+    consume(parser, TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+    u32 tokenIndex = parser.currentPos;
+    expr.tokenOperIndex = tokenIndex;
+    return addExpr(parser.mem, expr);
+
+}
+
+static u32 callFn(Parser& parser)
+{
+    u32 exprIndex = primary(parser);
+
+    while(match(parser, TokenType::LEFT_PAREN))
+    {
+        exprIndex = finishCall(parser, exprIndex);
+    }
+    return exprIndex;
+}
+
+
+static u32 unary(Parser& parser)
 {
     if(match(parser, TokenType::BANG, TokenType::MINUS))
     {
@@ -215,11 +259,11 @@ u32 unary(Parser& parser)
         u32 exprIndex = addExpr(parser.mem, expr);
         return exprIndex;
     }
-    return primary(parser);
+    return callFn(parser);
 }
 
 
-u32 factor(Parser& parser)
+static u32 factor(Parser& parser)
 {
     u32 exprIndex = unary(parser);
 
@@ -244,7 +288,7 @@ u32 factor(Parser& parser)
 
 
 
-u32 term(Parser& parser)
+static u32 term(Parser& parser)
 {
     u32 exprIndex = factor(parser);
 
@@ -266,7 +310,7 @@ u32 term(Parser& parser)
     return exprIndex;
 }
 
-u32 comparison(Parser& parser)
+static u32 comparison(Parser& parser)
 {
     u32 exprIndex = term(parser);
 
@@ -289,7 +333,7 @@ u32 comparison(Parser& parser)
 
 
 
-u32 equality(Parser& parser)
+static u32 equality(Parser& parser)
 {
     u32 exprIndex = comparison(parser);
 
@@ -398,7 +442,7 @@ static u32 expression(Parser& parser)
 
 
 
-static Statement declaration(Parser& parser)
+static u32 declaration(Parser& parser)
 {
     if(match(parser, TokenType::VAR))
     {
@@ -412,7 +456,11 @@ static Statement declaration(Parser& parser)
         u32 exprIndex = expression(parser);
         consume(parser, TokenType::SEMICOLON, "Expect ';' after variable declaration!");
 
-        return Statement{ .expressionIndex = exprIndex, .tokenIndex = tokenIndex, .type = StatementType_VarDeclare };
+        return addStatement(parser.mem, Statement{
+            .expressionIndex = exprIndex,
+            .tokenIndex = tokenIndex,
+            .type = StatementType_VarDeclare
+        });
     }
     else if(match(parser, TokenType::IF))
     {
@@ -420,18 +468,18 @@ static Statement declaration(Parser& parser)
         u32 exprIndex = expression(parser);
         consume(parser, TokenType::RIGHT_PAREN, "Expect ')' after if condition!");
 
-        u32 statementIndex = addStatement(parser.mem, declaration(parser));
+        u32 statementIndex = declaration(parser);
         u32 elseStatementIndex = ~0u;
         if(match(parser, TokenType::ELSE))
         {
-            elseStatementIndex = addStatement(parser.mem, declaration(parser));
+            elseStatementIndex = declaration(parser);
         }
-        return Statement{
+        addStatement(parser.mem, Statement{
             .expressionIndex = exprIndex,
             .ifStatementIndex = statementIndex,
             .elseStatementIndex = elseStatementIndex,
             .type = StatementType_If
-        };
+        });
     }
     else if(match(parser, TokenType::WHILE))
     {
@@ -439,47 +487,96 @@ static Statement declaration(Parser& parser)
         u32 conditionExprIndex = expression(parser);
         consume(parser, TokenType::RIGHT_PAREN, "Expected ')' after condition!");
 
-        u32 whileStatementIndex = addStatement(parser.mem, declaration(parser));
+        u32 whileStatementIndex = declaration(parser);
 
-        return Statement{
+        return addStatement(parser.mem, Statement{
             .expressionIndex = conditionExprIndex,
             .whileStatementIndex = whileStatementIndex,
-            .type = StatementType_While };
+            .type = StatementType_While
+        });
     }
     else if(match(parser, TokenType::PRINT))
     {
         u32 exprIndex = expression(parser);
         consume(parser, TokenType::SEMICOLON, "Expect ';' after expression!");
-        return Statement{ .expressionIndex = exprIndex, .type = StatementType_Print };
+        return addStatement(parser.mem, Statement {
+            .expressionIndex = exprIndex,
+            .type = StatementType_Print
+        });
+    }
+    else if(match(parser, TokenType::FUNC))
+    {
+        const Token& name = consume(parser, TokenType::IDENTIFIER, "Expect function name");
+        consume(parser, TokenType::LEFT_PAREN, "Expect '(' after function name");
+        Statement stmnt{
+            .type = StatementType_CallFn
+        };
+        u32 args = 0;
+        if (!check(parser, TokenType::RIGHT_PAREN))
+        {
+            do
+            {
+                if (args >= 4)
+                {
+                    reportError(parser.mem, peek(parser), "Function can only have 4 parameters!");
+                    DEBUG_BREAK_MACRO(10);
+                }
+                consume(parser, TokenType::IDENTIFIER, "Expected parameter name.");
+                stmnt.paramsNameIndices[args] = previousIndex(parser);
+                args++;
+            } while (match(parser, TokenType::COMMA));
+        }
+        stmnt.paramsNameIndicesCount = args;
+        consume(parser, TokenType::RIGHT_PAREN, "Expected ')' after parameters");
+        consume(parser, TokenType::LEFT_BRACE, "Expected '{' before function body.");
+
+        i32 blockIndex = block(parser, parser.mem.currentBlockIndex);
+        Block& b = parser.mem.blocks[blockIndex];
+        for(u32 i = 0; i < args; ++i)
+        {
+            const Token& t = parser.mem.tokens[stmnt.paramsNameIndices[i]];
+            std::string& str = parser.mem.strings[t.value.stringIndex];
+            b.variables.insert({str, ExprValue{}});
+        }
+        stmnt.blockIndex = blockIndex;
+        u32 fnIndex = addStatement(parser.mem, stmnt);
+        Block& b0 = parser.mem.blocks[0];
+        b0.variables.insert({getConstString(parser.mem, name), ExprValue{.stringIndex = fnIndex }});
+        return ~0;
     }
     else if(match(parser, TokenType::LEFT_BRACE))
     {
-        i32 blockIndex = block(parser);
-        return Statement{ .blockIndex = blockIndex, .type = StatementType_Block};
+        i32 blockIndex = block(parser, 0);
+        return addStatement(parser.mem, Statement {
+            .blockIndex = blockIndex,
+            .type = StatementType_Block
+        });
     }
 
     else
     {
         u32 exprIndex = expression(parser);
         consume(parser, TokenType::SEMICOLON, "Expect ';' after expression!");
-        return Statement{ .expressionIndex = exprIndex, .type = StatementType_Expression };
+        return addStatement(parser.mem, Statement{
+            .expressionIndex = exprIndex,
+            .type = StatementType_Expression
+        });
     }
 }
 
 
-static i32 block(Parser& parser)
+static i32 block(Parser& parser, i32 parentBlockIndex)
 {
-    i32 parentBlockIndex = parser.mem.currentBlockIndex;
     i32 blockIndex = parser.mem.blocks.size();
     parser.mem.blocks.emplace_back(Block{.parentBlockIndex = parentBlockIndex });
-    parser.mem.currentBlockIndex = blockIndex;
+    //parser.mem.currentBlockIndex = blockIndex;
     Block& block = parser.mem.blocks[blockIndex];
     while(!check(parser, TokenType::RIGHT_BRACE) && !isAtEnd(parser))
     {
-        block.statementIndices.push_back(addStatement(parser.mem, declaration(parser)));
+        block.statementIndices.push_back(declaration(parser));
     }
     consume(parser, TokenType::RIGHT_BRACE, "Expected '}' after block!");
-    parser.mem.currentBlockIndex = parentBlockIndex;
+    //parser.mem.currentBlockIndex = parentBlockIndex;
     return blockIndex;
 }
 
@@ -540,7 +637,7 @@ bool printAst(const MyMemory& mem, const Expr& expr, std::string& printStr)
 
 
 
-bool ast_test(MyMemory& mem)
+static bool ast_test(MyMemory& mem)
 {
     u32 minusStr = addString(mem, "-");
     u32 starStr = addString(mem, "*");
@@ -592,8 +689,9 @@ bool ast_generate(MyMemory& mem)
     mem.blocks.emplace_back(Block{.parentBlockIndex = -1});
     while(!isAtEnd(parser))
     {
-        u32 statementIndex = addStatement(mem, declaration(parser));
-        mem.blocks[0].statementIndices.push_back(statementIndex);
+        u32 statementIndex = declaration(parser);
+        if(statementIndex != ~0u)
+            mem.blocks[0].statementIndices.push_back(statementIndex);
     }
     return true;
     //return ast_test(mem);

@@ -29,3 +29,9 @@ ExprValue& getMutableValue(MyMemory& mem, u32 stringIndex);
 ExprValue& getMutableValue(MyMemory& mem, const ExprValue& exprValue);
 ExprValue& getMutableValue(MyMemory& mem, const Token& token);
 void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& value);
+
+const std::string& getConstString(const MyMemory& mem, const Token& token);
+const std::string& getConstString(const MyMemory& mem, const ExprValue& exprValue);
+
+std::string& getMutableString(MyMemory& mem, const Token& token);
+std::string& getMutableString(MyMemory& mem, const ExprValue& exprValue);

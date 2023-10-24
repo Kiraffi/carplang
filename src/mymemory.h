@@ -20,4 +20,5 @@ struct MyMemory
     std::vector<Expr> expressions;
     std::vector<Statement> statements;
     std::vector<u8> scriptFileData;
+    std::vector<Statement> functions;
 };

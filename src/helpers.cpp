@@ -5,6 +5,7 @@
 #include "token.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <unordered_map>
 #include <vector>
 
@@ -17,7 +18,7 @@ u32 addToken(MyMemory& mem, const Token& token)
 u32 addExpr(MyMemory& mem, const Expr& expr)
 {
     mem.expressions.emplace_back(expr);
-    mem.expressions[mem.expressions.size() - 1].myExprIndex = mem.expressions.size() - 1;
+    //mem.expressions[mem.expressions.size() - 1].myExprIndex = mem.expressions.size() - 1;
     return mem.expressions.size() - 1;
 }
 
@@ -29,8 +30,14 @@ u32 addString(MyMemory& mem, const std::string& str)
 
 u32 addStatement(MyMemory& mem, const Statement& statement)
 {
-    mem.statements.emplace_back(statement);
-    return mem.statements.size() - 1;
+    if(statement.type != StatementType_CallFn)
+    {
+        mem.statements.emplace_back(statement);
+        return mem.statements.size() - 1;
+    }
+    mem.functions.emplace_back(statement);
+    return mem.functions.size() - 1;
+
 }
 
 const Token& getTokenOper(const MyMemory& mem, const Expr& expr)
@@ -84,7 +91,7 @@ std::string stringify(const MyMemory& mem, const ExprValue& exprValue)
         case LiteralType_Double:
             return std::to_string(exprValue.doubleValue);
         case LiteralType_String:
-            return mem.strings[exprValue.stringIndex];
+            return getConstString(mem, exprValue);
     }
 
     reportError(-1, "Literal type unknown", "");
@@ -166,3 +173,30 @@ void defineVariable(MyMemory& mem, const std::string& name, const ExprValue& val
     b.variables.insert({name, value});
 }
 
+std::string& getMutableString(MyMemory& mem, const Token& token)
+{
+    assert(token.type == TokenType::IDENTIFIER);
+    assert(token.value.stringIndex < mem.strings.size());
+    return mem.strings[token.value.stringIndex];
+}
+
+std::string& getMutableString(MyMemory& mem, const ExprValue& exprValue)
+{
+    assert(exprValue.literalType == LiteralType_Identifier || exprValue.literalType == LiteralType_String);
+    assert(exprValue.stringIndex < mem.strings.size());
+    return mem.strings[exprValue.stringIndex];
+}
+
+const std::string& getConstString(const MyMemory& mem, const Token& token)
+{
+    assert(token.type == TokenType::IDENTIFIER);
+    assert(token.value.stringIndex < mem.strings.size());
+    return mem.strings[token.value.stringIndex];
+}
+
+const std::string& getConstString(const MyMemory& mem, const ExprValue& exprValue)
+{
+    assert(exprValue.literalType == LiteralType_Identifier || exprValue.literalType == LiteralType_String);
+    assert(exprValue.stringIndex < mem.strings.size());
+    return mem.strings[exprValue.stringIndex];
+}

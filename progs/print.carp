@@ -1,130 +1,140 @@
-var a = 3;
-print "var a = 3; print a";
-print a;
-print "a = 7; print a";
-a = 7;
-print a;
+//var a = 3;
+//print "var a = 3; print a";
+//print a;
+//print "a = 7; print a";
+//a = 7;
+//print a;
+//
+//print "var b = 2; print b";
+//var b = 2;
+//print b;
+//
+//print "print a + b";
+//print a + b;
+//
+//// First carp program
+//// print "Hello carppy world!";
+//// 123.4 // Number
+//
+//37 + 49;
+//
+//12 - 9;
+//3 * 7;
+//4 / 2;
+//2.5 * 3.1;
+//
+//(12 + 3) * ( 7 );
+//(7 + 3) * (2 + 1);
+//2 + 3 * 7;
+//2 * 3 + 4;
+//
+//1 < 0;
+//1.0 < 2;
+//2 < 3;
+//
+//4 > 5;
+//6 > 6;
+//7 > 3;
+//
+//1 <= 1;
+//1 <= 0;
+//1 <= 2;
+//
+//2 >= 0;
+//2 >= 2;
+//2 >= 4;
+//
+//print "1 + 2";
+//print 1 + 2;
+//print "foo";
+//print "3 + 4";
+//print 3 + 4;
+//print true;
+//
+//
+//// 12 + 34 == 23; // Does this work?
+//// true; // True
+//// false; // False
+//
+//print "var c = 3; print c";
+//var c = 3;
+//print c;
+//
+//print "Scope { var c = 5; print c }";
+//{
+//    var c = 5;
+//    print c;
+//}
+//print "out of scope; print c (should be 3)";
+//print c;
+//
+//var q = 1;
+//print q;
+//
+//q = q + 4;
+//print q;
+//
+//print "var s = 11; var t = 13; print s; print t; print s + t;";
+//var s = 11;
+//var t = 13;
+//print s;
+//print t;
+//print s + t;
+//
+//print "var e = s + 3; print e;";
+//var e = s + 3;
+//print e;
+//
+//if(13 < 12)
+//{
+//    print "wrong";
+//}
+//else if(14 > 20)
+//{
+//    print "Still wrong";
+//}
+//else
+//{
+//    print "correct";
+//}
+//
+//if(t < s)
+//    print "comparison was true";
+//else
+//    print "comparison was not true";
+//
+//
+//print "hi" or 2;
+//print nil || "yes";
+//
+//if(1 < 2 and 3 < 1)
+//{
+//    print "this is true";
+//}
+//if(1 && 1)
+//{
+//    print "and with &&";
+//}
+//
+//var loopVar = 10;
+//while(loopVar)
+//{
+//    print loopVar;
+//    loopVar = loopVar - 1;
+//}
+//
+//while(loopVar < 10)
+//{
+//    print loopVar;
+//    loopVar = loopVar + 1;
+//}
 
-print "var b = 2; print b";
-var b = 2;
-print b;
-
-print "print a + b";
-print a + b;
-
-// First carp program
-// print "Hello carppy world!";
-// 123.4 // Number
-
-37 + 49;
-
-12 - 9;
-3 * 7;
-4 / 2;
-2.5 * 3.1;
-
-(12 + 3) * ( 7 );
-(7 + 3) * (2 + 1);
-2 + 3 * 7;
-2 * 3 + 4;
-
-1 < 0;
-1.0 < 2;
-2 < 3;
-
-4 > 5;
-6 > 6;
-7 > 3;
-
-1 <= 1;
-1 <= 0;
-1 <= 2;
-
-2 >= 0;
-2 >= 2;
-2 >= 4;
-
-print "1 + 2";
-print 1 + 2;
-print "foo";
-print "3 + 4";
-print 3 + 4;
-print true;
 
 
-// 12 + 34 == 23; // Does this work?
-// true; // True
-// false; // False
-
-print "var c = 3; print c";
-var c = 3;
-print c;
-
-print "Scope { var c = 5; print c }";
+fn fooFn(hihi)
 {
-    var c = 5;
-    print c;
+    print hihi;
+    print "hihi";
 }
-print "out of scope; print c (should be 3)";
-print c;
+fooFn(3);
 
-var q = 1;
-print q;
-
-q = q + 4;
-print q;
-
-print "var s = 11; var t = 13; print s; print t; print s + t;";
-var s = 11;
-var t = 13;
-print s;
-print t;
-print s + t;
-
-print "var e = s + 3; print e;";
-var e = s + 3;
-print e;
-
-if(13 < 12)
-{
-    print "wrong";
-}
-else if(14 > 20)
-{
-    print "Still wrong";
-}
-else
-{
-    print "correct";
-}
-
-if(t < s)
-    print "comparison was true";
-else
-    print "comparison was not true";
-
-
-print "hi" or 2;
-print nil || "yes";
-
-if(1 < 2 and 3 < 1)
-{
-    print "this is true";
-}
-if(1 && 1)
-{
-    print "and with &&";
-}
-
-var loopVar = 10;
-while(loopVar)
-{
-    print loopVar;
-    loopVar = loopVar - 1;
-}
-
-while(loopVar < 10)
-{
-    print loopVar;
-    loopVar = loopVar + 1;
-}

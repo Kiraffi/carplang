@@ -12,6 +12,8 @@ enum StatementType : u8
     StatementType_If,
     StatementType_While,
 
+    StatementType_CallFn,
+
     StatementType_Count,
 };
 
@@ -30,6 +32,12 @@ struct Statement
         {
             u32 ifStatementIndex;
             u32 elseStatementIndex;
+        };
+        struct // call
+        {
+            u32 tokenNameIndex;
+            u32 paramsNameIndices[4];
+            u32 paramsNameIndicesCount;
         };
     };
     StatementType type;

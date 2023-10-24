@@ -26,7 +26,7 @@ static constexpr Keyword keywords[]{
     Keyword{ "else", TokenType::ELSE, 4 },
     Keyword{ "false", TokenType::FALSE, 5 },
     Keyword{ "true", TokenType::TRUE, 4 },
-    Keyword{ "func", TokenType::FUNC, 4 },
+    Keyword{ "fn", TokenType::FUNC, 2 },
     Keyword{ "if", TokenType::IF, 2 },
     Keyword{ "nil", TokenType::NIL, 3 },
     Keyword{ "or", TokenType::OR, 2 },

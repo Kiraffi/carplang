@@ -6,6 +6,7 @@
 #include "mymemory.h"
 #include "token.h"
 
+#include <assert.h>
 #include <cmath>
 #include <string>
 
@@ -128,6 +129,13 @@ static ExprValue doIntOperOnBinary(TokenType type, i64 a, i64 b)
     return value;
 }
 
+static ExprValue evaluate(MyMemory& mem, const Expr& expr);
+
+static ExprValue evaluate(MyMemory& mem, u32 exprIndex)
+{
+    assert(exprIndex < mem.expressions.size());
+    return evaluate(mem, mem.expressions[exprIndex]);
+}
 
 static ExprValue evaluate(MyMemory& mem, const Expr& expr)
 {
@@ -232,6 +240,43 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
             return evaluate(mem, getRightExpr(mem, expr));
 
         }
+
+        case ExprType_CallFn:
+        {
+            const ExprValue& calleeValue = evaluate(mem, expr.callee);
+            const Statement& statement = mem.functions[calleeValue.stringIndex];
+
+            assert(expr.callParamAmount == statement.paramsNameIndicesCount);
+
+            u32 currentBlockIndex = mem.currentBlockIndex;
+            mem.blocks.emplace_back(Block{.parentBlockIndex = 0 });
+            u32 newBlockIndex = mem.blocks.size() - 1;
+            mem.currentBlockIndex = newBlockIndex ;
+
+            const Block& b = mem.blocks[statement.blockIndex];
+
+            for(u32 i = 0; i < statement.paramsNameIndicesCount; ++i)
+            {
+                const Token& t = mem.tokens[statement.paramsNameIndices[i]];
+                const std::string& str = mem.strings[t.value.stringIndex];
+                const ExprValue& evalued = evaluate(mem, expr.callParams[i]);
+                mem.blocks[newBlockIndex].variables.insert({str, evalued});
+                mem.blocks[newBlockIndex].variables[str] = evalued; //.insert({str, evalued});
+            }
+
+            for(u32 index : b.statementIndices)
+            {
+                interpret(mem, mem.statements[index]);
+            }
+            mem.currentBlockIndex = currentBlockIndex;
+
+
+            //interpret(mem, mem.statements[calleeValue.stringIndex]);
+
+
+
+            return ExprValue{};
+        }
     }
 
     reportError(-2, "No known type!", "");
@@ -300,6 +345,9 @@ void interpret(MyMemory& mem, const Statement& statement)
             }
         }
         break;
+        case StatementType_CallFn:
+        {
+        }
         case StatementType_Count:
         {
             reportError(-3, "Statement count", "");
