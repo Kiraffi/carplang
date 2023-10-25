@@ -128,16 +128,40 @@
 //    print loopVar;
 //    loopVar = loopVar + 1;
 //}
-
-
-
-fn fooFn(hihi)
+//
+//
+//
+//fn fooFn(hihi)
+//{
+//    print hihi;
+//    print "hihi";
+//    if(hihi > 0)
+//        //  hihi = hihi -1;
+//        fooFn(hihi - 1);
+//}
+//fooFn(3);
+//
+//fn ret(abba)
+//{
+//    if(abba > 0)
+//       return 1 + ret(abba - 1);
+//    return 1;
+//}
+//
+//print ret(4);
+//
+//
+fn fib(nn)
 {
-    print hihi;
-    print "hihi";
-    if(hihi > 0)
-        //  hihi = hihi -1;
-        fooFn(hihi - 1);
+     if (nn <= 1) return nn;
+     return fib(nn - 2) + fib(nn - 1);
 }
-fooFn(3);
+
+var ind = 0;
+while(ind < 20)
+{
+    print fib(ind);
+    ind = ind + 1;
+}
+
 

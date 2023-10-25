@@ -13,6 +13,7 @@ enum StatementType : u8
     StatementType_While,
 
     StatementType_CallFn,
+    StatementType_Return,
 
     StatementType_Count,
 };

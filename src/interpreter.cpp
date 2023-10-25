@@ -267,15 +267,18 @@ static ExprValue evaluate(MyMemory& mem, const Expr& expr)
             for(u32 index : b.statementIndices)
             {
                 interpret(mem, mem.statements[index]);
+                if(mem.blocks[newBlockIndex].variables.contains("returnValue"))
+                    break;
             }
+            ExprValue value = mem.blocks[newBlockIndex].variables["returnValue"];
             mem.currentBlockIndex = currentBlockIndex;
 
-
+            mem.blocks.pop_back();
             //interpret(mem, mem.statements[calleeValue.stringIndex]);
 
 
 
-            return ExprValue{};
+            return value;
         }
     }
 
@@ -347,7 +350,28 @@ void interpret(MyMemory& mem, const Statement& statement)
         break;
         case StatementType_CallFn:
         {
+
         }
+        break;
+        case StatementType_Return:
+        {
+            u32 blockIndex = mem.currentBlockIndex;
+            assert(blockIndex != 0);
+            while(mem.blocks[blockIndex].parentBlockIndex != 0)
+                blockIndex = mem.blocks[blockIndex].parentBlockIndex;
+
+            if(statement.expressionIndex == ~0u)
+            {
+                mem.blocks[blockIndex].variables.insert({"returnValue", ExprValue{}});
+
+            }
+            else
+            {
+                const ExprValue& value = evaluate(mem, statement.expressionIndex);
+                mem.blocks[blockIndex].variables.insert({"returnValue", value});
+            }
+        }
+        break;
         case StatementType_Count:
         {
             reportError(-3, "Statement count", "");

@@ -504,6 +504,21 @@ static u32 declaration(Parser& parser)
             .type = StatementType_Print
         });
     }
+    else if(match(parser, TokenType::RETURN))
+    {
+        const Token& keyword = previous(parser);
+        u32 exprIndex = ~0u;
+        if(!check(parser, TokenType::SEMICOLON))
+        {
+            exprIndex = expression(parser);
+        }
+        consume(parser, TokenType::SEMICOLON, "Expect ';' after return value;");
+
+        return addStatement(parser.mem, Statement{
+            .expressionIndex = exprIndex,
+            .type = StatementType_Return
+        });
+    }
     else if(match(parser, TokenType::FUNC))
     {
         const Token& name = consume(parser, TokenType::IDENTIFIER, "Expect function name");
